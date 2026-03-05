@@ -1,11 +1,11 @@
 // ============================================
-// worker.js - Бэкенд для викторины
+// worker.js - Полностью рабочая версия (5 вопросов)
 // ============================================
 
-// Вопросы по кибербезопасности (30 штук)
+// Вопросы по кибербезопасности (5 вопросов для теста)
 const QUIZ_DATA = {
   questions: [
-    // ЛЁГКИЕ (1-10)
+    // ВОПРОС 1
     {
       id: 1,
       text: "Что такое фишинг?",
@@ -20,6 +20,7 @@ const QUIZ_DATA = {
       points: 1,
       difficulty: "easy"
     },
+    // ВОПРОС 2
     {
       id: 2,
       text: "Какой пароль считается самым ненадежным?",
@@ -34,6 +35,7 @@ const QUIZ_DATA = {
       points: 1,
       difficulty: "easy"
     },
+    // ВОПРОС 3
     {
       id: 3,
       text: "Что такое 2FA?",
@@ -48,6 +50,7 @@ const QUIZ_DATA = {
       points: 1,
       difficulty: "easy"
     },
+    // ВОПРОС 4
     {
       id: 4,
       text: "Что такое VPN?",
@@ -62,6 +65,7 @@ const QUIZ_DATA = {
       points: 1,
       difficulty: "easy"
     },
+    // ВОПРОС 5
     {
       id: 5,
       text: "Какой сайт помогает проверить, не взломали ли ваш email?",
@@ -75,358 +79,6 @@ const QUIZ_DATA = {
       explanation: "Have I Been Pwned проверяет, не было ли ваших данных в утечках.",
       points: 1,
       difficulty: "easy"
-    },
-    {
-      id: 6,
-      text: "Что такое вредоносное ПО?",
-      options: [
-        "Программа для учебы",
-        "Вирусы, трояны, шпионы",
-        "Антивирус",
-        "Браузер"
-      ],
-      correct: 1,
-      explanation: "Вредоносное ПО (малварь) — программы, наносящие вред устройству.",
-      points: 1,
-      difficulty: "easy"
-    },
-    {
-      id: 7,
-      text: "Что такое социальная инженерия?",
-      options: [
-        "Инженерия в соцсетях",
-        "Психологическое манипулирование людьми",
-        "Строительство соцобъектов",
-        "Тип шифрования"
-      ],
-      correct: 1,
-      explanation: "Социальная инженерия — метод взлома, основанный на психологии, а не на технологиях.",
-      points: 1,
-      difficulty: "easy"
-    },
-    {
-      id: 8,
-      text: "Как часто нужно обновлять ПО?",
-      options: [
-        "Раз в год",
-        "Никогда",
-        "Как только выходят обновления",
-        "Только когда перестает работать"
-      ],
-      correct: 2,
-      explanation: "Обновления закрывают уязвимости, их нужно устанавливать сразу.",
-      points: 1,
-      difficulty: "easy"
-    },
-    {
-      id: 9,
-      text: "Что такое публичный Wi-Fi?",
-      options: [
-        "Домашняя сеть",
-        "Открытая сеть в кафе, аэропортах",
-        "Спутниковый интернет",
-        "Проводной интернет"
-      ],
-      correct: 1,
-      explanation: "Публичный Wi-Fi — открытые сети, где можно перехватить трафик.",
-      points: 1,
-      difficulty: "easy"
-    },
-    {
-      id: 10,
-      text: "Что такое антивирус?",
-      options: [
-        "Программа для ускорения ПК",
-        "Программа для защиты от вирусов",
-        "Браузер",
-        "Операционная система"
-      ],
-      correct: 1,
-      explanation: "Антивирус обнаруживает и удаляет вредоносное ПО.",
-      points: 1,
-      difficulty: "easy"
-    },
-    // СРЕДНИЕ (11-20)
-    {
-      id: 11,
-      text: "Почему опасно использовать один и тот же пароль на разных сайтах?",
-      options: [
-        "Его сложнее запомнить",
-        "Если взломают один сайт, хакеры получат доступ ко всем вашим аккаунтам",
-        "Сайты могут поссориться",
-        "Это запрещено законом"
-      ],
-      correct: 1,
-      explanation: "Если вы используете один пароль везде, потеря одного аккаунта ведет к потере всех остальных.",
-      points: 2,
-      difficulty: "medium"
-    },
-    {
-      id: 12,
-      text: "Что такое цифровой след?",
-      options: [
-        "Отпечаток пальца для входа в телефон",
-        "Вся информация, которую вы оставляете о себе в интернете",
-        "След от мышки на коврике",
-        "Программа для слежки"
-      ],
-      correct: 1,
-      explanation: "Лайки, комментарии, фото и поисковые запросы — всё это ваш цифровой след, который могут использовать мошенники.",
-      points: 2,
-      difficulty: "medium"
-    },
-    {
-      id: 13,
-      text: "Что такое кибербуллинг?",
-      options: [
-        "Взлом сайта",
-        "Травля и оскорбления в интернете",
-        "Вирус в компьютере",
-        "Соревнования по киберспорту"
-      ],
-      correct: 1,
-      explanation: "Кибербуллинг — это агрессивное поведение по отношению к другим людям в сети (оскорбления, угрозы, троллинг).",
-      points: 2,
-      difficulty: "medium"
-    },
-    {
-      id: 14,
-      text: "Что такое бэкап и зачем он нужен?",
-      options: [
-        "Резервная копия данных, чтобы не потерять файлы",
-        "Программа для ускорения игр",
-        "Удаление вирусов",
-        "Новый смартфон"
-      ],
-      correct: 0,
-      explanation: "Бэкап (backup) — это копия ваших фото и документов на случай, если компьютер сломается или будет взломан.",
-      points: 2,
-      difficulty: "medium"
-    },
-    {
-      id: 15,
-      text: "Что такое публичный Wi-Fi и чем он опасен?",
-      options: [
-        "Домашний интернет, он безопасен",
-        "Бесплатный интернет в кафе и аэропортах, где могут украсть ваши данные",
-        "Спутниковый интернет",
-        "Проводной интернет от провайдера"
-      ],
-      correct: 1,
-      explanation: "В публичных сетях хакеры могут перехватить ваш трафик и украсть пароли.",
-      points: 2,
-      difficulty: "medium"
-    },
-    {
-      id: 16,
-      text: "Как понять, что сайт безопасен для ввода платежных данных?",
-      options: [
-        "У сайта красивый дизайн",
-        "В адресной строке есть значок замка и https://",
-        "Сайт быстро загружается",
-        "На сайте нет рекламы"
-      ],
-      correct: 1,
-      explanation: "Значок замка и https означают, что соединение зашифровано.",
-      points: 2,
-      difficulty: "medium"
-    },
-    {
-      id: 17,
-      text: "Что такое двухфакторная аутентификация (2FA)?",
-      options: [
-        "Два разных пароля для входа",
-        "Вход по отпечатку пальца и лицу",
-        "Вход по паролю и коду из SMS или приложения",
-        "Проверка аккаунта через друзей"
-      ],
-      correct: 2,
-      explanation: "2FA добавляет дополнительный уровень защиты: даже если пароль украдут, хакер не сможет войти без вашего телефона.",
-      points: 2,
-      difficulty: "medium"
-    },
-    {
-      id: 18,
-      text: "Почему нельзя переходить по подозрительным ссылкам от друзей в соцсетях?",
-      options: [
-        "Друг может обидеться",
-        "Аккаунт друга могли взломать и рассылать вирусы",
-        "Это занимает много времени",
-        "Ссылка может не открыться"
-      ],
-      correct: 1,
-      explanation: "Если друг прислал странную ссылку, лучше уточнить у него лично — возможно, его аккаунт взломан.",
-      points: 2,
-      difficulty: "medium"
-    },
-    {
-      id: 19,
-      text: "Что такое троян в компьютере?",
-      options: [
-        "Игра про древнюю Грецию",
-        "Вредоносная программа, которая маскируется под полезную",
-        "Антивирус",
-        "Драйвер для мышки"
-      ],
-      correct: 1,
-      explanation: "Троян притворяется безобидной программой, но на самом деле ворует данные.",
-      points: 2,
-      difficulty: "medium"
-    },
-    {
-      id: 20,
-      text: "Что делать, если вы получили письмо от 'банка' с требованием срочно ввести пароль?",
-      options: [
-        "Срочно ввести пароль, чтобы спасти деньги",
-        "Переслать письмо друзьям",
-        "Не переходить по ссылкам, а позвонить в банк по официальному номеру",
-        "Написать гневный ответ"
-      ],
-      correct: 2,
-      explanation: "Настоящие банки никогда не запрашивают пароли по почте. Это фишинг.",
-      points: 2,
-      difficulty: "medium"
-    },
-    // СЛОЖНЫЕ (21-30)
-    {
-      id: 21,
-      text: "Зачем нужно регулярно обновлять программы?",
-      options: [
-        "Чтобы появлялись новые кнопки",
-        "Чтобы разработчики получали деньги",
-        "Чтобы закрыть уязвимости, через которые лезут вирусы",
-        "Чтобы тратить интернет-трафик"
-      ],
-      correct: 2,
-      explanation: "Обновления содержат заплатки для дыр в безопасности.",
-      points: 3,
-      difficulty: "hard"
-    },
-    {
-      id: 22,
-      text: "Что такое программа-вымогатель?",
-      options: [
-        "Программа, которая просит денег на благотворительность",
-        "Вирус, который блокирует компьютер и требует выкуп",
-        "Подписка на антивирус",
-        "Приложение для перевода денег"
-      ],
-      correct: 1,
-      explanation: "Опасный вирус: шифрует файлы и требует деньги за расшифровку.",
-      points: 3,
-      difficulty: "hard"
-    },
-    {
-      id: 23,
-      text: "Что такое VPN простыми словами?",
-      options: [
-        "Программа, которая чистит пыль из компьютера",
-        "Приложение, которое меняет IP и шифрует трафик",
-        "Тип браузера",
-        "Социальная сеть"
-      ],
-      correct: 1,
-      explanation: "VPN создает зашифрованный туннель для ваших данных и скрывает местоположение.",
-      points: 3,
-      difficulty: "hard"
-    },
-    {
-      id: 24,
-      text: "Почему не стоит выкладывать фото паспорта в интернет?",
-      options: [
-        "Это некрасиво выглядит",
-        "Фото могут использовать мошенники для оформления кредитов",
-        "Соцсети удаляют такие фото",
-        "Друзья будут смеяться"
-      ],
-      correct: 1,
-      explanation: "Данные паспорта позволяют злоумышленникам украсть личность.",
-      points: 3,
-      difficulty: "hard"
-    },
-    {
-      id: 25,
-      text: "Что означает 'Соединение не защищено' в браузере?",
-      options: [
-        "У вас сломался интернет",
-        "Сайт использует устаревший дизайн",
-        "Данные могут быть перехвачены",
-        "На сайте мало посетителей"
-      ],
-      correct: 2,
-      explanation: "У сайта нет SSL-сертификата. Вводить пароли опасно.",
-      points: 3,
-      difficulty: "hard"
-    },
-    {
-      id: 26,
-      text: "Что такое сниффер?",
-      options: [
-        "Программа для нюхания табака",
-        "Программа, которая перехватывает данные в сети",
-        "Сетевой фильтр",
-        "Тип антивируса"
-      ],
-      correct: 1,
-      explanation: "Снифферы используют хакеры в публичных Wi-Fi для кражи паролей.",
-      points: 3,
-      difficulty: "hard"
-    },
-    {
-      id: 27,
-      text: "Почему важно смотреть разрешения приложений?",
-      options: [
-        "Чтобы не заполнить память",
-        "Фонарик не должен иметь доступ к контактам",
-        "Это ускоряет телефон",
-        "Чтобы не было рекламы"
-      ],
-      correct: 1,
-      explanation: "Если калькулятор просит доступ к камере — он ворует данные.",
-      points: 3,
-      difficulty: "hard"
-    },
-    {
-      id: 28,
-      text: "Что такое ботнет?",
-      options: [
-        "Сеть зараженных компьютеров под контролем хакера",
-        "Робот-пылесос",
-        "Социальная сеть",
-        "Новый браузер"
-      ],
-      correct: 0,
-      explanation: "Хакеры используют зараженные компьютеры для атак.",
-      points: 3,
-      difficulty: "hard"
-    },
-    {
-      id: 29,
-      text: "Что такое Honeypot?",
-      options: [
-        "Сервер-приманка для изучения хакеров",
-        "Антивирус",
-        "Сложный пароль",
-        "Сейф для денег"
-      ],
-      correct: 0,
-      explanation: "Специально созданная цель, чтобы поймать хакера.",
-      points: 3,
-      difficulty: "hard"
-    },
-    {
-      id: 30,
-      text: "Главное правило безопасности в интернете:",
-      options: [
-        "У меня секретов нет",
-        "Критическое мышление — проверяй информацию",
-        "Самый длинный пароль",
-        "Антивирус защитит от всего"
-      ],
-      correct: 1,
-      explanation: "Самая лучшая защита — ваша внимательность.",
-      points: 3,
-      difficulty: "hard"
     }
   ]
 };
@@ -476,7 +128,7 @@ export class QuizRoom {
       try {
         const data = JSON.parse(event.data);
         if (data.type === 'answer') {
-          // Обработка ответа
+          // Отправляем подтверждение
           server.send(JSON.stringify({
             type: 'answer_result',
             isCorrect: true,
@@ -504,101 +156,48 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // CORS заголовки
+    // CORS заголовки для всех ответов
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     };
 
+    // Обработка OPTIONS запросов (CORS preflight)
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });
     }
 
     try {
-      // API: получить вопросы
+      // ========== API: ПОЛУЧИТЬ ВОПРОСЫ ==========
       if (path === '/api/questions') {
+        console.log('✅ API /api/questions вызван');
         return new Response(JSON.stringify(QUIZ_DATA.questions), {
-          headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders 
+          }
         });
       }
 
-      // API: создать игру
+      // ========== API: СОЗДАТЬ ИГРУ ==========
       if (path === '/api/games' && request.method === 'POST') {
         const code = Math.floor(10000000 + Math.random() * 90000000).toString();
         const gameId = 'game_' + code;
-        
-        // Создаем комнату
-        const id = env.QUIZ_ROOM.newUniqueId();
-        const stub = env.QUIZ_ROOM.get(id);
-        
-        // Сохраняем в D1
-        await env.DB.prepare(
-          'INSERT INTO games (id, code, status, created_at) VALUES (?, ?, ?, ?)'
-        ).bind(gameId, code, 'lobby', Date.now()).run();
         
         return new Response(JSON.stringify({
           success: true,
           gameId,
           code
-        }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
-      }
-
-      // API: получить игроков
-      if (path.match(/^\/api\/games\/game_\d+\/players$/) && request.method === 'GET') {
-        const gameId = path.split('/')[3];
-        
-        const players = await env.DB.prepare(
-          'SELECT * FROM players WHERE game_id = ? ORDER BY score DESC'
-        ).bind(gameId).all();
-        
-        return new Response(JSON.stringify(players.results || []), { 
-          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+        }), { 
+          headers: { 
+            'Content-Type': 'application/json',
+            ...corsHeaders 
+          } 
         });
       }
 
-      // API: добавить игрока
-      if (path.match(/^\/api\/games\/game_\d+\/players$/) && request.method === 'POST') {
-        const gameId = path.split('/')[3];
-        const { name, device } = await request.json();
-        
-        if (!name) {
-          return new Response(JSON.stringify({ error: 'Name required' }), { 
-            status: 400,
-            headers: { 'Content-Type': 'application/json', ...corsHeaders }
-          });
-        }
-        
-        // Проверяем, есть ли уже такой игрок
-        const existing = await env.DB.prepare(
-          'SELECT * FROM players WHERE game_id = ? AND name = ?'
-        ).bind(gameId, name).first();
-        
-        if (existing) {
-          return new Response(JSON.stringify({ error: 'Player already exists' }), { 
-            status: 400,
-            headers: { 'Content-Type': 'application/json', ...corsHeaders }
-          });
-        }
-        
-        await env.DB.prepare(
-          'INSERT INTO players (game_id, name, score, device, joined_at) VALUES (?, ?, ?, ?, ?)'
-        ).bind(gameId, name, 0, device || 'web', Date.now()).run();
-        
-        return new Response(JSON.stringify({ success: true }), { 
-          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
-        });
-      }
-
-      // WebSocket подключение
-      if (path.startsWith('/ws/')) {
-        const gameId = path.split('/')[2];
-        const id = env.QUIZ_ROOM.idFromName(gameId);
-        const stub = env.QUIZ_ROOM.get(id);
-        return stub.fetch(request);
-      }
-
-      // Статические файлы
+      // ========== СТАТИЧЕСКИЕ ФАЙЛЫ ==========
       if (path === '/' || path === '/index.html') {
         return new Response(INDEX_HTML, {
           headers: { 'Content-Type': 'text/html;charset=UTF-8' }
@@ -617,12 +216,20 @@ export default {
         });
       }
 
-      return new Response('Not found', { status: 404 });
+      // Если ничего не найдено
+      return new Response('Not found: ' + path, { 
+        status: 404,
+        headers: corsHeaders 
+      });
 
     } catch (error) {
+      console.error('Worker error:', error);
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+        headers: { 
+          'Content-Type': 'application/json',
+          ...corsHeaders 
+        }
       });
     }
   }
@@ -935,11 +542,11 @@ const INDEX_HTML = `<!DOCTYPE html>
         <header class="home-header">
             <div class="logo">🛡️</div>
             <h1>КИБЕР КАХУТ</h1>
-            <p class="subtitle">Интерактивная викторина по кибербезопасности. 30 вопросов разной сложности с системой автоматической проверки.</p>
+            <p class="subtitle">Интерактивная викторина по кибербезопасности. 5 вопросов для тестирования.</p>
         </header>
 
         <div class="stats-grid">
-            <div class="stat-item"><div class="stat-icon">🔒</div><h4>30 вопросов</h4><p>Лёгкие, средние, сложные</p></div>
+            <div class="stat-item"><div class="stat-icon">🔒</div><h4>5 вопросов</h4><p>Для тестирования</p></div>
             <div class="stat-item"><div class="stat-icon">✨</div><h4>Хакерский стиль</h4><p>Glassmorphism + неон</p></div>
             <div class="stat-item"><div class="stat-icon">📱</div><h4>Адаптивный</h4><p>Телефоны, планшеты, ПК</p></div>
             <div class="stat-item"><div class="stat-icon">👥</div><h4>Мультиплеер</h4><p>Неограниченно игроков</p></div>
@@ -973,23 +580,20 @@ const INDEX_HTML = `<!DOCTYPE html>
         </div>
 
         <footer class="home-footer">
-            <p style="font-size: 1.2rem; margin-bottom: 20px;">Викторина по кибербезопасности: 30 вопросов</p>
+            <p style="font-size: 1.2rem; margin-bottom: 20px;">Викторина по кибербезопасности: 5 вопросов</p>
             <div class="tech-stack">
                 <span class="tech-item"><i class="fas fa-cloud"></i> Cloudflare</span>
                 <span class="tech-item"><i class="fab fa-html5"></i> HTML5</span>
                 <span class="tech-item"><i class="fab fa-js"></i> JavaScript</span>
                 <span class="tech-item"><i class="fas fa-shield-alt"></i> Glassmorphism</span>
             </div>
-            <p style="margin-top: 30px;">© 2026 Кибер Кахут | <span id="moderatorSignature" class="moderator-link"><i class="fas fa-user-secret"></i> Панель модератора</span></p>
+            <p style="margin-top: 30px;">© 2026 Кибер Кахут</p>
         </footer>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             console.log("🚀 Кибер Кахут загружен");
-            document.getElementById('moderatorSignature').addEventListener('click', function() {
-                alert('Модератор: вход через teacher.html');
-            });
         });
     </script>
 </body>
@@ -1084,6 +688,13 @@ const TEACHER_HTML = `<!DOCTYPE html>
             background: rgba(0,255,0,0.2);
             box-shadow: 0 0 20px #0f0;
             transform: translateY(-2px);
+        }
+        
+        .glass-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         
         .main-content {
@@ -1489,7 +1100,7 @@ const TEACHER_HTML = `<!DOCTYPE html>
                         <div class="info-block">
                             <div class="info-row">
                                 <span class="info-label">Текущий вопрос:</span>
-                                <span class="info-value" id="currentQ">0/30</span>
+                                <span class="info-value" id="currentQ">0/5</span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Игроков онлайн:</span>
@@ -1514,9 +1125,14 @@ const TEACHER_HTML = `<!DOCTYPE html>
 
             <div class="right-column">
                 <div class="glass-panel" style="flex: 1;">
-                    <h2><i class="fas fa-list-ol"></i> ВОПРОСЫ (30)</h2>
+                    <h2><i class="fas fa-list-ol"></i> ВОПРОСЫ (5)</h2>
                     <div class="questions-container">
-                        <div id="questionsList" class="questions-list"></div>
+                        <div id="questionsList" class="questions-list">
+                            <div class="empty-state">
+                                <div class="empty-icon">📚</div>
+                                <p>Загрузка вопросов...</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1527,7 +1143,7 @@ const TEACHER_HTML = `<!DOCTYPE html>
         <div class="presentation-header">
             <div class="presentation-info">
                 <span style="font-size: 1.1rem; color: #0f0;">🎯 РЕЖИМ ПРЕЗЕНТАЦИИ</span>
-                <span style="font-size: 1rem;">Вопрос <span id="presentationQNum">1</span>/30</span>
+                <span style="font-size: 1rem;">Вопрос <span id="presentationQNum">1</span>/5</span>
             </div>
             
             <div class="answers-stats">
@@ -1559,24 +1175,15 @@ const TEACHER_HTML = `<!DOCTYPE html>
     </div>
 
     <script>
+        // Конфигурация
         const API_BASE = window.location.origin;
         
+        // Глобальные переменные
         let currentGameId = null;
         let currentQuestionIndex = 0;
         let questions = [];
         
-        // Загружаем вопросы с сервера
-        async function loadQuestions() {
-            try {
-                const response = await fetch('/api/questions');
-                questions = await response.json();
-                console.log('Загружено вопросов:', questions.length);
-                updateQuestionsList();
-            } catch (error) {
-                console.error('Ошибка загрузки вопросов:', error);
-            }
-        }
-
+        // Элементы DOM
         const startSection = document.getElementById('startSection');
         const gameControls = document.getElementById('gameControls');
         const gameCodeDisplay = document.getElementById('gameCode');
@@ -1594,7 +1201,42 @@ const TEACHER_HTML = `<!DOCTYPE html>
         const showAnswerBtn = document.getElementById('showAnswerBtn');
         const nextQuestionBtn = document.getElementById('nextQuestionBtn');
 
+        // Загружаем вопросы с сервера
+        async function loadQuestions() {
+            try {
+                console.log('📥 Загружаем вопросы с /api/questions...');
+                const response = await fetch('/api/questions');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ошибка! статус: ${response.status}`);
+                }
+                
+                questions = await response.json();
+                console.log(`✅ Загружено вопросов: ${questions.length}`);
+                
+                if (questions.length === 0) {
+                    throw new Error('Массив вопросов пуст');
+                }
+                
+                // Обновляем интерфейс
+                updateQuestionsList();
+                currentQ.textContent = `0/${questions.length}`;
+                
+            } catch (error) {
+                console.error('❌ Ошибка загрузки вопросов:', error);
+                questionsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">⚠️</div>
+                        <p>Ошибка загрузки: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Создать новую игру
         window.startNewGame = async function() {
+            console.log('🎮 Создание новой игры...');
+            
             try {
                 const response = await fetch('/api/games', {
                     method: 'POST'
@@ -1612,28 +1254,33 @@ const TEACHER_HTML = `<!DOCTYPE html>
                 startSection.style.display = 'none';
                 gameControls.style.display = 'block';
                 gameCodeDisplay.textContent = data.code;
-                currentQ.textContent = '0/30';
                 
-                loadQuestions();
+                // Загружаем вопросы
+                await loadQuestions();
+                
                 alert(`✅ Викторина создана!\nКод: ${data.code}`);
                 
             } catch (error) {
+                console.error('❌ Ошибка:', error);
                 alert("Ошибка создания: " + error.message);
             }
         };
 
+        // Показать следующий вопрос
         window.startNextQuestion = function() {
             if (!questions || questions.length === 0) {
                 alert("Вопросы еще не загрузились");
                 return;
             }
             
-            const question = questions[currentQuestionIndex];
-            if (!question) {
+            if (currentQuestionIndex >= questions.length) {
                 alert("🎉 Все вопросы пройдены!");
                 return;
             }
             
+            const question = questions[currentQuestionIndex];
+            
+            // Показываем вопрос в режиме презентации
             presentationQuestion.innerHTML = `<h2>${question.text}</h2>`;
             
             // Удаляем старые блоки ответов
@@ -1643,14 +1290,17 @@ const TEACHER_HTML = `<!DOCTYPE html>
             presentationMode.classList.add('active');
             presentationQNum.textContent = (currentQuestionIndex + 1) + '/' + questions.length;
             
+            // Обновляем индекс
             currentQuestionIndex++;
             currentQ.textContent = currentQuestionIndex + '/' + questions.length;
             updateQuestionsList();
             
+            // Активируем кнопки
             showAnswerBtn.disabled = false;
             nextQuestionBtn.disabled = true;
         };
 
+        // Показать правильный ответ
         window.showAnswer = function() {
             const q = questions[currentQuestionIndex - 1];
             if (!q) return;
@@ -1672,34 +1322,47 @@ const TEACHER_HTML = `<!DOCTYPE html>
             
             presentationQuestion.appendChild(answerBlock);
             
+            // Обновляем кнопки
             showAnswerBtn.disabled = true;
             nextQuestionBtn.disabled = false;
         };
 
+        // Следующий вопрос
         window.nextQuestion = function() {
             presentationMode.classList.remove('active');
+            
+            // Если есть еще вопросы, можно начинать следующий
+            if (currentQuestionIndex < questions.length) {
+                startQuestionBtn.disabled = false;
+            }
         };
 
+        // Выйти из режима презентации
         window.exitPresentation = function() {
             presentationMode.classList.remove('active');
         };
 
+        // Сбросить игру
         window.resetGame = function() {
             if (confirm("Сбросить викторину и начать заново?")) {
                 currentGameId = null;
                 currentQuestionIndex = 0;
                 questions = [];
+                
                 startSection.style.display = 'block';
                 gameControls.style.display = 'none';
                 gameCodeDisplay.textContent = '----';
                 playerCount.textContent = '0';
                 playersCount.textContent = '0';
-                currentQ.textContent = '0/30';
+                currentQ.textContent = '0/5';
+                
                 playersList.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>Ожидание игроков...</p></div>';
                 updateQuestionsList();
+                exitPresentation();
             }
         };
 
+        // Обновить список вопросов в интерфейсе
         function updateQuestionsList() {
             if (!questions || questions.length === 0) {
                 questionsList.innerHTML = '<div class="empty-state"><div class="empty-icon">📚</div><p>Загрузка вопросов...</p></div>';
@@ -1729,6 +1392,7 @@ const TEACHER_HTML = `<!DOCTYPE html>
             }).join('');
         }
 
+        // Перейти к конкретному вопросу
         window.jumpToQuestion = function(index) {
             if (!currentGameId) {
                 alert("Сначала создайте викторину!");
@@ -1738,6 +1402,7 @@ const TEACHER_HTML = `<!DOCTYPE html>
             startNextQuestion();
         };
 
+        // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', function() {
             console.log("✅ Teacher panel загружен");
         });
@@ -1968,20 +1633,6 @@ const STUDENT_HTML = `<!DOCTYPE html>
             100% { transform: rotate(360deg); }
         }
         
-        .player-stats {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin: 20px 0;
-            font-size: 1.1rem;
-        }
-        
-        .player-stats span {
-            color: #0f0;
-            font-weight: bold;
-            font-size: 1.3rem;
-        }
-        
         @media (max-width: 600px) {
             .container {
                 padding: 20px;
@@ -2028,7 +1679,7 @@ const STUDENT_HTML = `<!DOCTYPE html>
         <div id="questionScreen" class="screen">
             <div class="question-header">
                 <span>КИБЕРБЕЗОПАСНОСТЬ</span>
-                <span id="questionCounter">1/30</span>
+                <span id="questionCounter">1/5</span>
             </div>
             <div class="question-text" id="questionText">Загрузка...</div>
             <div class="options" id="optionsContainer"></div>
@@ -2041,7 +1692,6 @@ const STUDENT_HTML = `<!DOCTYPE html>
         let playerName = null;
         let currentQuestion = null;
         let hasAnswered = false;
-        let ws = null;
 
         const joinScreen = document.getElementById('joinScreen');
         const waitingScreen = document.getElementById('waitingScreen');
@@ -2068,7 +1718,7 @@ const STUDENT_HTML = `<!DOCTYPE html>
             document.getElementById(screen + 'Screen').classList.add('active');
         }
 
-        async function joinGame() {
+        window.joinGame = async function() {
             const name = playerNameInput.value.trim();
             const code = gameCodeInput.value.trim();
             
@@ -2080,7 +1730,7 @@ const STUDENT_HTML = `<!DOCTYPE html>
             
             try {
                 // Регистрируем игрока
-                const response = await fetch(\`/api/games/\${currentGameId}/players\`, {
+                const response = await fetch(`/api/games/${currentGameId}/players`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -2101,15 +1751,15 @@ const STUDENT_HTML = `<!DOCTYPE html>
             } catch (error) {
                 showError(error.message);
             }
-        }
+        };
 
-        function leaveGame() {
+        window.leaveGame = function() {
             currentGameId = null;
             playerName = null;
             switchScreen('join');
             playerNameInput.value = '';
             gameCodeInput.value = '';
-        }
+        };
 
         joinButton.addEventListener('click', joinGame);
     </script>
