@@ -574,8 +574,8 @@
     </div>
 
     <script>
-        // Конфигурация
-        const API_BASE = window.location.origin;
+        // ========== ВАЖНО: используем правильный Worker ==========
+        const API_BASE = 'https://kiber-quiz.ilyagulkov25.workers.dev';
         
         // Глобальные переменные
         let currentGameId = null;
@@ -606,7 +606,7 @@
                 console.log('📥 Загружаем вопросы с /api/questions...');
                 console.log('API_BASE:', API_BASE);
                 
-                const response = await fetch('/api/questions');
+                const response = await fetch(API_BASE + '/api/questions');
                 console.log('Статус ответа:', response.status);
                 
                 if (!response.ok) {
@@ -644,7 +644,7 @@
             console.log('🎮 Создание новой игры...');
             
             try {
-                const response = await fetch('/api/games', {
+                const response = await fetch(API_BASE + '/api/games', {
                     method: 'POST'
                 });
                 
@@ -816,4 +816,4 @@
         });
     </script>
 </body>
-</html>`;
+</html>
