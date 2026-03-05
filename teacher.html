@@ -89,6 +89,13 @@
             transform: translateY(-2px);
         }
         
+        .glass-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
         .main-content {
             display: flex;
             flex: 1;
@@ -492,7 +499,7 @@
                         <div class="info-block">
                             <div class="info-row">
                                 <span class="info-label">Текущий вопрос:</span>
-                                <span class="info-value" id="currentQ">0/30</span>
+                                <span class="info-value" id="currentQ">0/5</span>
                             </div>
                             <div class="info-row">
                                 <span class="info-label">Игроков онлайн:</span>
@@ -517,9 +524,14 @@
 
             <div class="right-column">
                 <div class="glass-panel" style="flex: 1;">
-                    <h2><i class="fas fa-list-ol"></i> ВОПРОСЫ (30)</h2>
+                    <h2><i class="fas fa-list-ol"></i> ВОПРОСЫ (5)</h2>
                     <div class="questions-container">
-                        <div id="questionsList" class="questions-list"></div>
+                        <div id="questionsList" class="questions-list">
+                            <div class="empty-state">
+                                <div class="empty-icon">📚</div>
+                                <p>Загрузка вопросов...</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -530,7 +542,7 @@
         <div class="presentation-header">
             <div class="presentation-info">
                 <span style="font-size: 1.1rem; color: #0f0;">🎯 РЕЖИМ ПРЕЗЕНТАЦИИ</span>
-                <span style="font-size: 1rem;">Вопрос <span id="presentationQNum">1</span>/30</span>
+                <span style="font-size: 1rem;">Вопрос <span id="presentationQNum">1</span>/5</span>
             </div>
             
             <div class="answers-stats">
@@ -562,15 +574,15 @@
     </div>
 
     <script>
+        // Конфигурация
         const API_BASE = window.location.origin;
         
+        // Глобальные переменные
         let currentGameId = null;
         let currentQuestionIndex = 0;
-        let questions = [
-            { id: 1, text: "Что такое фишинг?", options: ["Вид рыбалки", "Метод кражи данных", "Антивирус", "Шифрование"], correct: 1, difficulty: "easy", points: 1 },
-            { id: 2, text: "Какой пароль самый ненадежный?", options: ["G7$k2!mN9", "Tr0ub4dor&3", "qwerty123", "P@ssw0rd!$"], correct: 2, difficulty: "easy", points: 1 }
-        ];
-
+        let questions = [];
+        
+        // Элементы DOM
         const startSection = document.getElementById('startSection');
         const gameControls = document.getElementById('gameControls');
         const gameCodeDisplay = document.getElementById('gameCode');
@@ -584,90 +596,224 @@
         const presentationQuestion = document.getElementById('presentationQuestion');
         const answeredCount = document.getElementById('answeredCount');
         const correctCount = document.getElementById('correctCount');
+        const startQuestionBtn = document.getElementById('startQuestionBtn');
+        const showAnswerBtn = document.getElementById('showAnswerBtn');
+        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
 
-        window.startNewGame = function() {
-            const code = Math.floor(10000000 + Math.random() * 90000000).toString();
-            currentGameId = "game_" + code;
+        // Загружаем вопросы с сервера
+        async function loadQuestions() {
+            try {
+                console.log('📥 Загружаем вопросы с /api/questions...');
+                console.log('API_BASE:', API_BASE);
+                
+                const response = await fetch('/api/questions');
+                console.log('Статус ответа:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error('Сервер вернул ошибку ' + response.status);
+                }
+                
+                const data = await response.json();
+                console.log('Полученные данные:', data);
+                
+                questions = data;
+                console.log('✅ Загружено вопросов:', questions.length);
+                
+                if (questions.length === 0) {
+                    throw new Error('Нет вопросов');
+                }
+                
+                // Обновляем интерфейс
+                updateQuestionsList();
+                currentQ.textContent = '0/' + questions.length;
+                
+            } catch (error) {
+                console.error('❌ Ошибка загрузки вопросов:', error);
+                questionsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">⚠️</div>
+                        <p>Ошибка загрузки: ${error.message}</p>
+                        <button onclick="loadQuestions()" class="glass-btn" style="margin-top: 15px;">Повторить</button>
+                    </div>
+                `;
+            }
+        }
+
+        // Создать новую игру
+        window.startNewGame = async function() {
+            console.log('🎮 Создание новой игры...');
             
-            startSection.style.display = 'none';
-            gameControls.style.display = 'block';
-            gameCodeDisplay.textContent = code;
-            currentQ.textContent = '0/30';
-            
-            updateQuestionsList();
-            alert(`✅ Викторина создана!\nКод: ${code}`);
+            try {
+                const response = await fetch('/api/games', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error('Ошибка создания игры');
+                }
+                
+                currentGameId = data.gameId;
+                currentQuestionIndex = 0;
+                
+                startSection.style.display = 'none';
+                gameControls.style.display = 'block';
+                gameCodeDisplay.textContent = data.code;
+                
+                alert(`✅ Викторина создана!\nКод: ${data.code}`);
+                
+            } catch (error) {
+                console.error('❌ Ошибка:', error);
+                alert("Ошибка создания: " + error.message);
+            }
         };
 
+        // Показать следующий вопрос
         window.startNextQuestion = function() {
-            const question = questions[currentQuestionIndex];
-            if (!question) {
+            if (!questions || questions.length === 0) {
+                alert("Вопросы еще не загрузились");
+                loadQuestions();
+                return;
+            }
+            
+            if (currentQuestionIndex >= questions.length) {
                 alert("🎉 Все вопросы пройдены!");
                 return;
             }
             
-            presentationQuestion.innerHTML = `<h2>${question.text}</h2>`;
-            presentationMode.classList.add('active');
-            presentationQNum.textContent = currentQuestionIndex + 1;
+            const question = questions[currentQuestionIndex];
             
+            // Показываем вопрос в режиме презентации
+            presentationQuestion.innerHTML = `<h2>${question.text}</h2>`;
+            
+            // Удаляем старые блоки ответов
+            const oldAnswers = presentationQuestion.querySelectorAll('.answer-block');
+            oldAnswers.forEach(el => el.remove());
+            
+            presentationMode.classList.add('active');
+            presentationQNum.textContent = (currentQuestionIndex + 1) + '/' + questions.length;
+            
+            // Обновляем индекс
             currentQuestionIndex++;
-            currentQ.textContent = currentQuestionIndex + '/30';
+            currentQ.textContent = currentQuestionIndex + '/' + questions.length;
             updateQuestionsList();
+            
+            // Активируем кнопки
+            showAnswerBtn.disabled = false;
+            nextQuestionBtn.disabled = true;
         };
 
+        // Показать правильный ответ
         window.showAnswer = function() {
             const q = questions[currentQuestionIndex - 1];
             if (!q) return;
             
             const correctAnswer = q.options[q.correct];
+            
+            // Удаляем старый блок ответа
+            const oldAnswer = presentationQuestion.querySelector('.answer-block');
+            if (oldAnswer) oldAnswer.remove();
+            
+            // Создаём новый блок
             const answerBlock = document.createElement('div');
             answerBlock.className = 'answer-block';
             answerBlock.innerHTML = `
-                <h3 style="color: #0f0;">✅ ПРАВИЛЬНЫЙ ОТВЕТ:</h3>
+                <h3 style="color: #0f0; margin-bottom: 15px;">✅ ПРАВИЛЬНЫЙ ОТВЕТ:</h3>
                 <div class="correct-answer">${correctAnswer}</div>
+                <div class="explanation">${q.explanation || ''}</div>
             `;
+            
             presentationQuestion.appendChild(answerBlock);
+            
+            // Обновляем кнопки
+            showAnswerBtn.disabled = true;
+            nextQuestionBtn.disabled = false;
         };
 
+        // Следующий вопрос
         window.nextQuestion = function() {
             presentationMode.classList.remove('active');
+            
+            // Если есть еще вопросы, можно начинать следующий
+            if (currentQuestionIndex < questions.length) {
+                startQuestionBtn.disabled = false;
+            }
         };
 
+        // Выйти из режима презентации
         window.exitPresentation = function() {
             presentationMode.classList.remove('active');
         };
 
+        // Сбросить игру
         window.resetGame = function() {
-            currentGameId = null;
-            currentQuestionIndex = 0;
-            startSection.style.display = 'block';
-            gameControls.style.display = 'none';
-            gameCodeDisplay.textContent = '----';
-            playerCount.textContent = '0';
-            playersCount.textContent = '0';
-            currentQ.textContent = '0/30';
-            playersList.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>Ожидание игроков...</p></div>';
-            updateQuestionsList();
+            if (confirm("Сбросить викторину и начать заново?")) {
+                currentGameId = null;
+                currentQuestionIndex = 0;
+                questions = [];
+                
+                startSection.style.display = 'block';
+                gameControls.style.display = 'none';
+                gameCodeDisplay.textContent = '----';
+                playerCount.textContent = '0';
+                playersCount.textContent = '0';
+                currentQ.textContent = '0/5';
+                
+                playersList.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>Ожидание игроков...</p></div>';
+                updateQuestionsList();
+                exitPresentation();
+                
+                // Загружаем вопросы заново
+                loadQuestions();
+            }
         };
 
+        // Обновить список вопросов в интерфейсе
         function updateQuestionsList() {
+            if (!questions || questions.length === 0) {
+                questionsList.innerHTML = '<div class="empty-state"><div class="empty-icon">📚</div><p>Загрузка вопросов...</p></div>';
+                return;
+            }
+            
             questionsList.innerHTML = questions.map((q, i) => {
                 const isCurrent = i === currentQuestionIndex - 1;
                 const isCompleted = i < currentQuestionIndex - 1;
-                let statusClass = isCurrent ? 'active' : isCompleted ? 'completed' : '';
+                
+                let statusClass = '';
+                if (isCurrent) statusClass = 'active';
+                else if (isCompleted) statusClass = 'completed';
+                
+                let difficultyColor = q.difficulty === 'easy' ? '#0f0' : q.difficulty === 'medium' ? 'yellow' : 'red';
+                let difficultyText = q.difficulty === 'easy' ? 'ЛЁГКИЙ' : q.difficulty === 'medium' ? 'СРЕДНИЙ' : 'СЛОЖНЫЙ';
+                
                 return `
-                    <div class="question-item ${statusClass}">
+                    <div class="question-item ${statusClass}" onclick="jumpToQuestion(${i})">
                         <div class="question-number">${i + 1}</div>
-                        <div class="question-difficulty" style="color: ${q.difficulty === 'easy' ? '#0f0' : 'yellow'};">${q.difficulty.toUpperCase()}</div>
-                        <div class="question-status">${isCurrent ? '🔴' : isCompleted ? '✅' : '⏳'}</div>
+                        <div class="question-difficulty" style="color: ${difficultyColor};">${difficultyText}</div>
+                        <div class="question-status">
+                            ${isCurrent ? '🔴' : isCompleted ? '✅' : '⏳'}
+                        </div>
                     </div>
                 `;
             }).join('');
         }
 
+        // Перейти к конкретному вопросу
+        window.jumpToQuestion = function(index) {
+            if (!currentGameId) {
+                alert("Сначала создайте викторину!");
+                return;
+            }
+            currentQuestionIndex = index;
+            startNextQuestion();
+        };
+
+        // Загружаем вопросы сразу при открытии страницы
         document.addEventListener('DOMContentLoaded', function() {
-            console.log("✅ Teacher panel загружен");
-            updateQuestionsList();
+            console.log("✅ Teacher panel загружен, начинаем загрузку вопросов...");
+            loadQuestions();
         });
     </script>
 </body>
-</html>
+</html>`;
