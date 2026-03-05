@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Преподаватель - Кибер Кахут</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background: #0a0a0a;
+            color: #0f0;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        
+        #mainInterface {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+        }
+        
+        .teacher-header {
+            background: rgba(0, 255, 0, 0.05);
+            backdrop-filter: blur(20px);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #0f0;
+            flex-shrink: 0;
+        }
+        
+        .header-left h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #0f0;
+            text-shadow: 0 0 10px #0f0;
+        }
+        
+        .game-code-box {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #0f0;
+            border-radius: 12px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .code-display {
+            font-family: monospace;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #0f0;
+            letter-spacing: 2px;
+            min-width: 150px;
+            text-align: center;
+        }
+        
+        .glass-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            border: 2px solid #0f0;
+            border-radius: 10px;
+            cursor: pointer;
+            background: rgba(0,255,0,0.1);
+            color: #0f0;
+            font-family: 'Share Tech Mono', monospace;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .glass-btn:hover {
+            background: rgba(0,255,0,0.2);
+            box-shadow: 0 0 20px #0f0;
+            transform: translateY(-2px);
+        }
+        
+        .main-content {
+            display: flex;
+            flex: 1;
+            padding: 20px;
+            gap: 20px;
+            overflow: hidden;
+            min-height: 0;
+        }
+        
+        .left-column {
+            width: 35%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow: hidden;
+        }
+        
+        .right-column {
+            width: 65%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow: hidden;
+        }
+        
+        .glass-panel {
+            background: rgba(0, 255, 0, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid #0f0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .glass-panel h2 {
+            color: #0f0;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        
+        .control-buttons {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        
+        .control-buttons .glass-btn {
+            padding: 15px;
+            font-size: 1rem;
+            justify-content: flex-start;
+        }
+        
+        .info-block {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #0f0;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .info-label {
+            color: rgba(0,255,0,0.7);
+        }
+        
+        .info-value {
+            color: #0f0;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        
+        .players-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 5px;
+            min-height: 0;
+        }
+        
+        .players-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+        }
+        
+        .player-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #0f0;
+            border-radius: 16px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .player-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 20px rgba(0,255,0,0.3);
+        }
+        
+        .player-avatar {
+            width: 50px;
+            height: 50px;
+            background: #0f0;
+            color: black;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 900;
+        }
+        
+        .player-name {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            word-break: break-word;
+        }
+        
+        .player-score {
+            color: #0f0;
+            font-size: 0.9rem;
+        }
+        
+        .questions-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 5px;
+            min-height: 0;
+        }
+        
+        .questions-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        
+        .question-item {
+            background: rgba(0,0,0,0.3);
+            border: 2px solid #0f0;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .question-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0,255,0,0.3);
+        }
+        
+        .question-item.active { 
+            border-color: #ff00ff; 
+            box-shadow: 0 0 20px #ff00ff;
+            background: rgba(255,0,255,0.1);
+        }
+        
+        .question-item.completed { 
+            border-color: #00ffff;
+            opacity: 0.7;
+        }
+        
+        .question-number {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+        }
+        
+        .question-difficulty {
+            font-size: 0.7rem;
+            margin-bottom: 5px;
+        }
+        
+        .question-status {
+            font-size: 0.9rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: rgba(0,255,0,0.5);
+        }
+        
+        .empty-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+        
+        #presentationMode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #0a0a0a;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+        }
+        
+        #presentationMode.active { 
+            display: flex;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .presentation-header {
+            background: rgba(0,255,0,0.1);
+            backdrop-filter: blur(20px);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #0f0;
+        }
+        
+        .presentation-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .answers-stats {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .answer-stat-box {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #0f0;
+            border-radius: 10px;
+            padding: 8px 15px;
+            text-align: center;
+            min-width: 90px;
+        }
+        
+        .answer-stat-box .label {
+            font-size: 0.7rem;
+            color: rgba(0,255,0,0.7);
+        }
+        
+        .answer-stat-box .value {
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: #0f0;
+        }
+        
+        .presentation-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            overflow-y: auto;
+        }
+        
+        .presentation-question {
+            max-width: 900px;
+            width: 100%;
+            background: rgba(0,0,0,0.7);
+            border: 2px solid #0f0;
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 0 80px rgba(0,255,0,0.3);
+        }
+        
+        .presentation-question h2 {
+            color: white;
+            font-size: 2.2rem;
+            text-align: center;
+            line-height: 1.4;
+            margin-bottom: 30px;
+        }
+        
+        .presentation-controls {
+            padding: 15px;
+            text-align: center;
+            border-top: 1px solid #0f0;
+        }
+        
+        .presentation-controls .glass-btn {
+            display: inline-flex;
+            width: auto;
+            padding: 12px 30px;
+            margin: 0 8px;
+        }
+        
+        .answer-block {
+            margin-top: 30px;
+            padding: 25px;
+            background: rgba(0,255,0,0.1);
+            border: 1px solid #0f0;
+            border-radius: 16px;
+            animation: slideUp 0.5s;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .correct-answer {
+            color: #0f0;
+            font-size: 1.8rem;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .explanation {
+            color: rgba(255,255,255,0.8);
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 255, 0, 0.05);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #0f0;
+            border-radius: 3px;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-content {
+                flex-direction: column;
+            }
+            .left-column, .right-column {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="mainInterface">
+        <header class="teacher-header">
+            <div class="header-left">
+                <h1>👨‍🏫 ПАНЕЛЬ ПРЕПОДАВАТЕЛЯ</h1>
+            </div>
+            <div class="game-code-box">
+                <span>КОД:</span>
+                <div id="gameCode" class="code-display">----</div>
+                <a href="/" class="glass-btn">
+                    <i class="fas fa-home"></i> Главная
+                </a>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="left-column">
+                <div class="glass-panel">
+                    <h2><i class="fas fa-gamepad"></i> УПРАВЛЕНИЕ</h2>
+                    
+                    <div id="startSection">
+                        <button onclick="startNewGame()" class="glass-btn control-buttons">
+                            <i class="fas fa-plus-circle"></i> СОЗДАТЬ ВИКТОРИНУ
+                        </button>
+                    </div>
+
+                    <div id="gameControls" style="display: none;">
+                        <div class="control-buttons">
+                            <button onclick="startNextQuestion()" id="startQuestionBtn" class="glass-btn">
+                                <i class="fas fa-play"></i> ПОКАЗАТЬ ВОПРОС
+                            </button>
+                            <button onclick="showAnswer()" id="showAnswerBtn" class="glass-btn" disabled>
+                                <i class="fas fa-check-circle"></i> ПОКАЗАТЬ ОТВЕТ
+                            </button>
+                            <button onclick="nextQuestion()" id="nextQuestionBtn" class="glass-btn" disabled>
+                                <i class="fas fa-forward"></i> СЛЕДУЮЩИЙ ВОПРОС
+                            </button>
+                            <button onclick="resetGame()" class="glass-btn">
+                                <i class="fas fa-redo"></i> СБРОСИТЬ
+                            </button>
+                        </div>
+                        
+                        <div class="info-block">
+                            <div class="info-row">
+                                <span class="info-label">Текущий вопрос:</span>
+                                <span class="info-value" id="currentQ">0/30</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Игроков онлайн:</span>
+                                <span class="info-value" id="playerCount">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="glass-panel" style="flex: 1;">
+                    <h2><i class="fas fa-users"></i> УЧАСТНИКИ <span id="playersCount" style="color:#0f0; margin-left:auto;">0</span></h2>
+                    <div class="players-container" id="playersContainer">
+                        <div id="playersList" class="players-list">
+                            <div class="empty-state">
+                                <div class="empty-icon">👤</div>
+                                <p>Ожидание игроков...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-column">
+                <div class="glass-panel" style="flex: 1;">
+                    <h2><i class="fas fa-list-ol"></i> ВОПРОСЫ (30)</h2>
+                    <div class="questions-container">
+                        <div id="questionsList" class="questions-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="presentationMode">
+        <div class="presentation-header">
+            <div class="presentation-info">
+                <span style="font-size: 1.1rem; color: #0f0;">🎯 РЕЖИМ ПРЕЗЕНТАЦИИ</span>
+                <span style="font-size: 1rem;">Вопрос <span id="presentationQNum">1</span>/30</span>
+            </div>
+            
+            <div class="answers-stats">
+                <div class="answer-stat-box">
+                    <div class="label">Ответили</div>
+                    <div class="value" id="answeredCount">0</div>
+                </div>
+                <div class="answer-stat-box">
+                    <div class="label">Правильно</div>
+                    <div class="value" id="correctCount">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="presentation-content">
+            <div id="presentationQuestion" class="presentation-question">
+                <h2>Вопрос появится здесь</h2>
+            </div>
+        </div>
+
+        <div class="presentation-controls">
+            <button onclick="exitPresentation()" class="glass-btn">
+                <i class="fas fa-times"></i> ВЕРНУТЬСЯ
+            </button>
+            <button onclick="showAnswer()" class="glass-btn">
+                <i class="fas fa-check-circle"></i> ПОКАЗАТЬ ОТВЕТ
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        
+        let currentGameId = null;
+        let currentQuestionIndex = 0;
+        let questions = [
+            { id: 1, text: "Что такое фишинг?", options: ["Вид рыбалки", "Метод кражи данных", "Антивирус", "Шифрование"], correct: 1, difficulty: "easy", points: 1 },
+            { id: 2, text: "Какой пароль самый ненадежный?", options: ["G7$k2!mN9", "Tr0ub4dor&3", "qwerty123", "P@ssw0rd!$"], correct: 2, difficulty: "easy", points: 1 }
+        ];
+
+        const startSection = document.getElementById('startSection');
+        const gameControls = document.getElementById('gameControls');
+        const gameCodeDisplay = document.getElementById('gameCode');
+        const playersList = document.getElementById('playersList');
+        const playerCount = document.getElementById('playerCount');
+        const playersCount = document.getElementById('playersCount');
+        const questionsList = document.getElementById('questionsList');
+        const currentQ = document.getElementById('currentQ');
+        const presentationMode = document.getElementById('presentationMode');
+        const presentationQNum = document.getElementById('presentationQNum');
+        const presentationQuestion = document.getElementById('presentationQuestion');
+        const answeredCount = document.getElementById('answeredCount');
+        const correctCount = document.getElementById('correctCount');
+
+        window.startNewGame = function() {
+            const code = Math.floor(10000000 + Math.random() * 90000000).toString();
+            currentGameId = "game_" + code;
+            
+            startSection.style.display = 'none';
+            gameControls.style.display = 'block';
+            gameCodeDisplay.textContent = code;
+            currentQ.textContent = '0/30';
+            
+            updateQuestionsList();
+            alert(`✅ Викторина создана!\nКод: ${code}`);
+        };
+
+        window.startNextQuestion = function() {
+            const question = questions[currentQuestionIndex];
+            if (!question) {
+                alert("🎉 Все вопросы пройдены!");
+                return;
+            }
+            
+            presentationQuestion.innerHTML = `<h2>${question.text}</h2>`;
+            presentationMode.classList.add('active');
+            presentationQNum.textContent = currentQuestionIndex + 1;
+            
+            currentQuestionIndex++;
+            currentQ.textContent = currentQuestionIndex + '/30';
+            updateQuestionsList();
+        };
+
+        window.showAnswer = function() {
+            const q = questions[currentQuestionIndex - 1];
+            if (!q) return;
+            
+            const correctAnswer = q.options[q.correct];
+            const answerBlock = document.createElement('div');
+            answerBlock.className = 'answer-block';
+            answerBlock.innerHTML = `
+                <h3 style="color: #0f0;">✅ ПРАВИЛЬНЫЙ ОТВЕТ:</h3>
+                <div class="correct-answer">${correctAnswer}</div>
+            `;
+            presentationQuestion.appendChild(answerBlock);
+        };
+
+        window.nextQuestion = function() {
+            presentationMode.classList.remove('active');
+        };
+
+        window.exitPresentation = function() {
+            presentationMode.classList.remove('active');
+        };
+
+        window.resetGame = function() {
+            currentGameId = null;
+            currentQuestionIndex = 0;
+            startSection.style.display = 'block';
+            gameControls.style.display = 'none';
+            gameCodeDisplay.textContent = '----';
+            playerCount.textContent = '0';
+            playersCount.textContent = '0';
+            currentQ.textContent = '0/30';
+            playersList.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>Ожидание игроков...</p></div>';
+            updateQuestionsList();
+        };
+
+        function updateQuestionsList() {
+            questionsList.innerHTML = questions.map((q, i) => {
+                const isCurrent = i === currentQuestionIndex - 1;
+                const isCompleted = i < currentQuestionIndex - 1;
+                let statusClass = isCurrent ? 'active' : isCompleted ? 'completed' : '';
+                return `
+                    <div class="question-item ${statusClass}">
+                        <div class="question-number">${i + 1}</div>
+                        <div class="question-difficulty" style="color: ${q.difficulty === 'easy' ? '#0f0' : 'yellow'};">${q.difficulty.toUpperCase()}</div>
+                        <div class="question-status">${isCurrent ? '🔴' : isCompleted ? '✅' : '⏳'}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("✅ Teacher panel загружен");
+            updateQuestionsList();
+        });
+    </script>
+</body>
+</html>
