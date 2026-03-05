@@ -1,5 +1,5 @@
 // ============================================
-// worker.js - Полностью рабочая версия (5 вопросов)
+// worker.js - ПОЛНОСТЬЮ РАБОЧАЯ ВЕРСИЯ
 // ============================================
 
 // Вопросы по кибербезопасности (5 вопросов для теста)
@@ -128,7 +128,6 @@ export class QuizRoom {
       try {
         const data = JSON.parse(event.data);
         if (data.type === 'answer') {
-          // Отправляем подтверждение
           server.send(JSON.stringify({
             type: 'answer_result',
             isCorrect: true,
@@ -156,14 +155,13 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    // CORS заголовки для всех ответов
+    // CORS заголовки
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     };
 
-    // Обработка OPTIONS запросов (CORS preflight)
     if (request.method === 'OPTIONS') {
       return new Response(null, { headers: corsHeaders });
     }
@@ -216,7 +214,6 @@ export default {
         });
       }
 
-      // Если ничего не найдено
       return new Response('Not found: ' + path, { 
         status: 404,
         headers: corsHeaders 
@@ -236,9 +233,8 @@ export default {
 };
 
 // ============================================
-// ВСТАВЛЕННЫЕ HTML ФАЙЛЫ
+// INDEX.HTML
 // ============================================
-
 const INDEX_HTML = `<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -599,6 +595,9 @@ const INDEX_HTML = `<!DOCTYPE html>
 </body>
 </html>`;
 
+// ============================================
+// TEACHER.HTML (ИСПРАВЛЕННЫЙ)
+// ============================================
 const TEACHER_HTML = `<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -1201,35 +1200,36 @@ const TEACHER_HTML = `<!DOCTYPE html>
         const showAnswerBtn = document.getElementById('showAnswerBtn');
         const nextQuestionBtn = document.getElementById('nextQuestionBtn');
 
-        // Загружаем вопросы с сервера
+        // Загружаем вопросы с сервера (ВЫЗЫВАЕТСЯ АВТОМАТИЧЕСКИ ПРИ ЗАГРУЗКЕ)
         async function loadQuestions() {
             try {
                 console.log('📥 Загружаем вопросы с /api/questions...');
                 const response = await fetch('/api/questions');
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP ошибка! статус: ${response.status}`);
+                    throw new Error('Сервер вернул ошибку ' + response.status);
                 }
                 
                 questions = await response.json();
-                console.log(`✅ Загружено вопросов: ${questions.length}`);
+                console.log('✅ Загружено вопросов:', questions.length);
                 
                 if (questions.length === 0) {
-                    throw new Error('Массив вопросов пуст');
+                    throw new Error('Нет вопросов');
                 }
                 
                 // Обновляем интерфейс
                 updateQuestionsList();
-                currentQ.textContent = `0/${questions.length}`;
+                currentQ.textContent = '0/' + questions.length;
                 
             } catch (error) {
                 console.error('❌ Ошибка загрузки вопросов:', error);
-                questionsList.innerHTML = `
+                questionsList.innerHTML = \`
                     <div class="empty-state">
                         <div class="empty-icon">⚠️</div>
-                        <p>Ошибка загрузки: ${error.message}</p>
+                        <p>Ошибка загрузки: \${error.message}</p>
+                        <button onclick="loadQuestions()" class="glass-btn" style="margin-top: 15px;">Повторить</button>
                     </div>
-                `;
+                \`;
             }
         }
 
@@ -1255,10 +1255,7 @@ const TEACHER_HTML = `<!DOCTYPE html>
                 gameControls.style.display = 'block';
                 gameCodeDisplay.textContent = data.code;
                 
-                // Загружаем вопросы
-                await loadQuestions();
-                
-                alert(`✅ Викторина создана!\nКод: ${data.code}`);
+                alert(\`✅ Викторина создана!\\nКод: \${data.code}\`);
                 
             } catch (error) {
                 console.error('❌ Ошибка:', error);
@@ -1281,7 +1278,7 @@ const TEACHER_HTML = `<!DOCTYPE html>
             const question = questions[currentQuestionIndex];
             
             // Показываем вопрос в режиме презентации
-            presentationQuestion.innerHTML = `<h2>${question.text}</h2>`;
+            presentationQuestion.innerHTML = \`<h2>\${question.text}</h2>\`;
             
             // Удаляем старые блоки ответов
             const oldAnswers = presentationQuestion.querySelectorAll('.answer-block');
@@ -1314,11 +1311,11 @@ const TEACHER_HTML = `<!DOCTYPE html>
             // Создаём новый блок
             const answerBlock = document.createElement('div');
             answerBlock.className = 'answer-block';
-            answerBlock.innerHTML = `
+            answerBlock.innerHTML = \`
                 <h3 style="color: #0f0; margin-bottom: 15px;">✅ ПРАВИЛЬНЫЙ ОТВЕТ:</h3>
-                <div class="correct-answer">${correctAnswer}</div>
-                <div class="explanation">${q.explanation || ''}</div>
-            `;
+                <div class="correct-answer">\${correctAnswer}</div>
+                <div class="explanation">\${q.explanation || ''}</div>
+            \`;
             
             presentationQuestion.appendChild(answerBlock);
             
@@ -1359,6 +1356,9 @@ const TEACHER_HTML = `<!DOCTYPE html>
                 playersList.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>Ожидание игроков...</p></div>';
                 updateQuestionsList();
                 exitPresentation();
+                
+                // Загружаем вопросы заново
+                loadQuestions();
             }
         };
 
@@ -1380,15 +1380,15 @@ const TEACHER_HTML = `<!DOCTYPE html>
                 let difficultyColor = q.difficulty === 'easy' ? '#0f0' : q.difficulty === 'medium' ? 'yellow' : 'red';
                 let difficultyText = q.difficulty === 'easy' ? 'ЛЁГКИЙ' : q.difficulty === 'medium' ? 'СРЕДНИЙ' : 'СЛОЖНЫЙ';
                 
-                return `
-                    <div class="question-item ${statusClass}" onclick="jumpToQuestion(${i})">
-                        <div class="question-number">${i + 1}</div>
-                        <div class="question-difficulty" style="color: ${difficultyColor};">${difficultyText}</div>
+                return \`
+                    <div class="question-item \${statusClass}" onclick="jumpToQuestion(\${i})">
+                        <div class="question-number">\${i + 1}</div>
+                        <div class="question-difficulty" style="color: \${difficultyColor};">\${difficultyText}</div>
                         <div class="question-status">
-                            ${isCurrent ? '🔴' : isCompleted ? '✅' : '⏳'}
+                            \${isCurrent ? '🔴' : isCompleted ? '✅' : '⏳'}
                         </div>
                     </div>
-                `;
+                \`;
             }).join('');
         }
 
@@ -1402,14 +1402,18 @@ const TEACHER_HTML = `<!DOCTYPE html>
             startNextQuestion();
         };
 
-        // Инициализация при загрузке страницы
+        // Загружаем вопросы сразу при открытии страницы
         document.addEventListener('DOMContentLoaded', function() {
-            console.log("✅ Teacher panel загружен");
+            console.log("✅ Teacher panel загружен, начинаем загрузку вопросов...");
+            loadQuestions();
         });
     </script>
 </body>
 </html>`;
 
+// ============================================
+// STUDENT.HTML
+// ============================================
 const STUDENT_HTML = `<!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -1729,8 +1733,7 @@ const STUDENT_HTML = `<!DOCTYPE html>
             currentGameId = "game_" + code;
             
             try {
-                // Регистрируем игрока
-                const response = await fetch(`/api/games/${currentGameId}/players`, {
+                const response = await fetch(\`/api/games/\${currentGameId}/players\`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
