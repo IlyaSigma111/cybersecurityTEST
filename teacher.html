@@ -236,6 +236,11 @@
             font-size: 0.9rem;
         }
         
+        .player-card.answered {
+            border-color: #ff00ff;
+            box-shadow: 0 0 15px #ff00ff;
+        }
+        
         .questions-container {
             flex: 1;
             overflow-y: auto;
@@ -574,19 +579,24 @@
     </div>
 
     <script>
-        // ========== ВАЖНО: используем правильный Worker ==========
+        // ========== КОНФИГУРАЦИЯ ==========
         const API_BASE = 'https://kiber-quiz.ilyagulkov25.workers.dev';
         
-        // Глобальные переменные
+        // ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
         let currentGameId = null;
+        let currentGameCode = null;
         let currentQuestionIndex = 0;
         let questions = [];
+        let players = {};
+        let ws = null;
+        let reconnectTimer = null;
         
-        // Элементы DOM
+        // ========== ЭЛЕМЕНТЫ DOM ==========
         const startSection = document.getElementById('startSection');
         const gameControls = document.getElementById('gameControls');
         const gameCodeDisplay = document.getElementById('gameCode');
         const playersList = document.getElementById('playersList');
+        const playersContainer = document.getElementById('playersContainer');
         const playerCount = document.getElementById('playerCount');
         const playersCount = document.getElementById('playersCount');
         const questionsList = document.getElementById('questionsList');
@@ -600,50 +610,38 @@
         const showAnswerBtn = document.getElementById('showAnswerBtn');
         const nextQuestionBtn = document.getElementById('nextQuestionBtn');
 
-        // Загружаем вопросы с сервера
+        // ========== ЗАГРУЗКА ВОПРОСОВ ==========
         async function loadQuestions() {
             try {
-                console.log('📥 Загружаем вопросы с /api/questions...');
-                console.log('API_BASE:', API_BASE);
-                
+                console.log('📥 Загружаем вопросы...');
                 const response = await fetch(API_BASE + '/api/questions');
-                console.log('Статус ответа:', response.status);
                 
                 if (!response.ok) {
-                    throw new Error('Сервер вернул ошибку ' + response.status);
+                    throw new Error('Ошибка ' + response.status);
                 }
                 
-                const data = await response.json();
-                console.log('Полученные данные:', data);
-                
-                questions = data;
+                questions = await response.json();
                 console.log('✅ Загружено вопросов:', questions.length);
                 
-                if (questions.length === 0) {
-                    throw new Error('Нет вопросов');
-                }
-                
-                // Обновляем интерфейс
                 updateQuestionsList();
                 currentQ.textContent = '0/' + questions.length;
                 
             } catch (error) {
-                console.error('❌ Ошибка загрузки вопросов:', error);
+                console.error('❌ Ошибка:', error);
                 questionsList.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-icon">⚠️</div>
                         <p>Ошибка загрузки: ${error.message}</p>
-                        <button onclick="loadQuestions()" class="glass-btn" style="margin-top: 15px;">Повторить</button>
+                        <button onclick="loadQuestions()" class="glass-btn">Повторить</button>
                     </div>
                 `;
             }
         }
 
-        // Создать новую игру
+        // ========== СОЗДАНИЕ ИГРЫ ==========
         window.startNewGame = async function() {
-            console.log('🎮 Создание новой игры...');
-            
             try {
+                console.log('🎮 Создание игры...');
                 const response = await fetch(API_BASE + '/api/games', {
                     method: 'POST'
                 });
@@ -651,28 +649,118 @@
                 const data = await response.json();
                 
                 if (!data.success) {
-                    throw new Error('Ошибка создания игры');
+                    throw new Error('Ошибка создания');
                 }
                 
                 currentGameId = data.gameId;
+                currentGameCode = data.code;
                 currentQuestionIndex = 0;
                 
                 startSection.style.display = 'none';
                 gameControls.style.display = 'block';
                 gameCodeDisplay.textContent = data.code;
                 
+                // Подключаем WebSocket
+                connectWebSocket();
+                
+                // Начинаем слушать игроков
+                startPollingPlayers();
+                
                 alert(`✅ Викторина создана!\nКод: ${data.code}`);
                 
             } catch (error) {
                 console.error('❌ Ошибка:', error);
-                alert("Ошибка создания: " + error.message);
+                alert("Ошибка: " + error.message);
             }
         };
 
-        // Показать следующий вопрос
+        // ========== WEB SOCKET ==========
+        function connectWebSocket() {
+            if (!currentGameId) return;
+            
+            const wsUrl = `wss://${API_BASE.replace('https://', '')}/ws/${currentGameId}/teacher`;
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = () => {
+                console.log('✅ WebSocket подключен');
+            };
+            
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                } catch (e) {
+                    console.error('Ошибка парсинга:', e);
+                }
+            };
+            
+            ws.onclose = () => {
+                console.log('❌ WebSocket отключен');
+                if (reconnectTimer) clearTimeout(reconnectTimer);
+                reconnectTimer = setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        function handleWebSocketMessage(data) {
+            switch (data.type) {
+                case 'player_joined':
+                case 'player_left':
+                case 'answer_stats':
+                    if (data.players) {
+                        updatePlayersList(data.players);
+                    }
+                    if (data.stats) {
+                        answeredCount.textContent = data.stats.total || 0;
+                        correctCount.textContent = data.stats.correct || 0;
+                    }
+                    break;
+            }
+        }
+
+        // ========== ПОЛЛИНГ ИГРОКОВ (ЗАПАСНОЙ ВАРИАНТ) ==========
+        function startPollingPlayers() {
+            if (!currentGameId) return;
+            
+            const poll = () => {
+                fetch(API_BASE + `/api/games/${currentGameId}/players`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (Array.isArray(data)) {
+                            updatePlayersList(data);
+                        }
+                    })
+                    .catch(err => console.error('Polling error:', err));
+            };
+            
+            poll();
+            setInterval(poll, 2000);
+        }
+
+        // ========== ОБНОВЛЕНИЕ СПИСКА ИГРОКОВ ==========
+        function updatePlayersList(playersArray) {
+            const count = playersArray.length;
+            playerCount.textContent = count;
+            playersCount.textContent = count;
+            
+            if (count === 0) {
+                playersList.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>Ожидание игроков...</p></div>';
+                return;
+            }
+            
+            playersList.innerHTML = playersArray.map(p => `
+                <div class="player-card ${p.answered ? 'answered' : ''}">
+                    <div class="player-avatar">${p.name?.charAt(0).toUpperCase() || '?'}</div>
+                    <div class="player-name">${p.name || 'Без имени'}</div>
+                    <div class="player-score">🎯 ${p.score || 0}</div>
+                    ${p.answered ? '<div style="color: #ff00ff; font-size: 0.8rem;">✅ ответил</div>' : ''}
+                </div>
+            `).join('');
+        }
+
+        // ========== УПРАВЛЕНИЕ ВОПРОСАМИ ==========
         window.startNextQuestion = function() {
             if (!questions || questions.length === 0) {
-                alert("Вопросы еще не загрузились");
+                alert("Вопросы не загружены");
                 loadQuestions();
                 return;
             }
@@ -684,95 +772,78 @@
             
             const question = questions[currentQuestionIndex];
             
-            // Показываем вопрос в режиме презентации
             presentationQuestion.innerHTML = `<h2>${question.text}</h2>`;
             
-            // Удаляем старые блоки ответов
             const oldAnswers = presentationQuestion.querySelectorAll('.answer-block');
             oldAnswers.forEach(el => el.remove());
             
             presentationMode.classList.add('active');
             presentationQNum.textContent = (currentQuestionIndex + 1) + '/' + questions.length;
             
-            // Обновляем индекс
             currentQuestionIndex++;
             currentQ.textContent = currentQuestionIndex + '/' + questions.length;
             updateQuestionsList();
             
-            // Активируем кнопки
             showAnswerBtn.disabled = false;
             nextQuestionBtn.disabled = true;
         };
 
-        // Показать правильный ответ
         window.showAnswer = function() {
             const q = questions[currentQuestionIndex - 1];
             if (!q) return;
             
             const correctAnswer = q.options[q.correct];
             
-            // Удаляем старый блок ответа
             const oldAnswer = presentationQuestion.querySelector('.answer-block');
             if (oldAnswer) oldAnswer.remove();
             
-            // Создаём новый блок
             const answerBlock = document.createElement('div');
             answerBlock.className = 'answer-block';
             answerBlock.innerHTML = `
-                <h3 style="color: #0f0; margin-bottom: 15px;">✅ ПРАВИЛЬНЫЙ ОТВЕТ:</h3>
+                <h3 style="color: #0f0;">✅ ПРАВИЛЬНЫЙ ОТВЕТ:</h3>
                 <div class="correct-answer">${correctAnswer}</div>
                 <div class="explanation">${q.explanation || ''}</div>
             `;
             
             presentationQuestion.appendChild(answerBlock);
             
-            // Обновляем кнопки
             showAnswerBtn.disabled = true;
             nextQuestionBtn.disabled = false;
         };
 
-        // Следующий вопрос
         window.nextQuestion = function() {
             presentationMode.classList.remove('active');
-            
-            // Если есть еще вопросы, можно начинать следующий
-            if (currentQuestionIndex < questions.length) {
-                startQuestionBtn.disabled = false;
-            }
         };
 
-        // Выйти из режима презентации
         window.exitPresentation = function() {
             presentationMode.classList.remove('active');
         };
 
-        // Сбросить игру
+        // ========== СБРОС ИГРЫ ==========
         window.resetGame = function() {
-            if (confirm("Сбросить викторину и начать заново?")) {
+            if (confirm("Сбросить викторину?")) {
+                if (ws) ws.close();
                 currentGameId = null;
+                currentGameCode = null;
                 currentQuestionIndex = 0;
-                questions = [];
                 
                 startSection.style.display = 'block';
                 gameControls.style.display = 'none';
                 gameCodeDisplay.textContent = '----';
                 playerCount.textContent = '0';
                 playersCount.textContent = '0';
-                currentQ.textContent = '0/5';
+                currentQ.textContent = '0/' + (questions.length || 5);
                 
                 playersList.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>Ожидание игроков...</p></div>';
                 updateQuestionsList();
                 exitPresentation();
-                
-                // Загружаем вопросы заново
-                loadQuestions();
             }
         };
 
-        // Обновить список вопросов в интерфейсе
+        // ========== ОБНОВЛЕНИЕ СПИСКА ВОПРОСОВ ==========
         function updateQuestionsList() {
             if (!questions || questions.length === 0) {
-                questionsList.innerHTML = '<div class="empty-state"><div class="empty-icon">📚</div><p>Загрузка вопросов...</p></div>';
+                questionsList.innerHTML = '<div class="empty-state"><div class="empty-icon">📚</div><p>Загрузка...</p></div>';
                 return;
             }
             
@@ -799,7 +870,6 @@
             }).join('');
         }
 
-        // Перейти к конкретному вопросу
         window.jumpToQuestion = function(index) {
             if (!currentGameId) {
                 alert("Сначала создайте викторину!");
@@ -809,9 +879,9 @@
             startNextQuestion();
         };
 
-        // Загружаем вопросы сразу при открытии страницы
+        // ========== ИНИЦИАЛИЗАЦИЯ ==========
         document.addEventListener('DOMContentLoaded', function() {
-            console.log("✅ Teacher panel загружен, начинаем загрузку вопросов...");
+            console.log("✅ Teacher panel загружен");
             loadQuestions();
         });
     </script>
