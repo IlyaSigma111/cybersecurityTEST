@@ -544,6 +544,52 @@ export default {
         }), { headers: { 'Content-Type': 'application/json', ...corsHeaders } });
       }
 
+      // API: получить игроков
+      if (path.match(/^\/api\/games\/game_\d+\/players$/) && request.method === 'GET') {
+        const gameId = path.split('/')[3];
+        
+        const players = await env.DB.prepare(
+          'SELECT * FROM players WHERE game_id = ? ORDER BY score DESC'
+        ).bind(gameId).all();
+        
+        return new Response(JSON.stringify(players.results || []), { 
+          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+        });
+      }
+
+      // API: добавить игрока
+      if (path.match(/^\/api\/games\/game_\d+\/players$/) && request.method === 'POST') {
+        const gameId = path.split('/')[3];
+        const { name, device } = await request.json();
+        
+        if (!name) {
+          return new Response(JSON.stringify({ error: 'Name required' }), { 
+            status: 400,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+        
+        // Проверяем, есть ли уже такой игрок
+        const existing = await env.DB.prepare(
+          'SELECT * FROM players WHERE game_id = ? AND name = ?'
+        ).bind(gameId, name).first();
+        
+        if (existing) {
+          return new Response(JSON.stringify({ error: 'Player already exists' }), { 
+            status: 400,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+          });
+        }
+        
+        await env.DB.prepare(
+          'INSERT INTO players (game_id, name, score, device, joined_at) VALUES (?, ?, ?, ?, ?)'
+        ).bind(gameId, name, 0, device || 'web', Date.now()).run();
+        
+        return new Response(JSON.stringify({ success: true }), { 
+          headers: { 'Content-Type': 'application/json', ...corsHeaders } 
+        });
+      }
+
       // WebSocket подключение
       if (path.startsWith('/ws/')) {
         const gameId = path.split('/')[2];
@@ -1517,10 +1563,19 @@ const TEACHER_HTML = `<!DOCTYPE html>
         
         let currentGameId = null;
         let currentQuestionIndex = 0;
-        let questions = [
-            { id: 1, text: "Что такое фишинг?", options: ["Вид рыбалки", "Метод кражи данных", "Антивирус", "Шифрование"], correct: 1, difficulty: "easy", points: 1 },
-            { id: 2, text: "Какой пароль самый ненадежный?", options: ["G7$k2!mN9", "Tr0ub4dor&3", "qwerty123", "P@ssw0rd!$"], correct: 2, difficulty: "easy", points: 1 }
-        ];
+        let questions = [];
+        
+        // Загружаем вопросы с сервера
+        async function loadQuestions() {
+            try {
+                const response = await fetch('/api/questions');
+                questions = await response.json();
+                console.log('Загружено вопросов:', questions.length);
+                updateQuestionsList();
+            } catch (error) {
+                console.error('Ошибка загрузки вопросов:', error);
+            }
+        }
 
         const startSection = document.getElementById('startSection');
         const gameControls = document.getElementById('gameControls');
@@ -1535,21 +1590,44 @@ const TEACHER_HTML = `<!DOCTYPE html>
         const presentationQuestion = document.getElementById('presentationQuestion');
         const answeredCount = document.getElementById('answeredCount');
         const correctCount = document.getElementById('correctCount');
+        const startQuestionBtn = document.getElementById('startQuestionBtn');
+        const showAnswerBtn = document.getElementById('showAnswerBtn');
+        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
 
-        window.startNewGame = function() {
-            const code = Math.floor(10000000 + Math.random() * 90000000).toString();
-            currentGameId = "game_" + code;
-            
-            startSection.style.display = 'none';
-            gameControls.style.display = 'block';
-            gameCodeDisplay.textContent = code;
-            currentQ.textContent = '0/30';
-            
-            updateQuestionsList();
-            alert(`✅ Викторина создана!\nКод: ${code}`);
+        window.startNewGame = async function() {
+            try {
+                const response = await fetch('/api/games', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error('Ошибка создания игры');
+                }
+                
+                currentGameId = data.gameId;
+                currentQuestionIndex = 0;
+                
+                startSection.style.display = 'none';
+                gameControls.style.display = 'block';
+                gameCodeDisplay.textContent = data.code;
+                currentQ.textContent = '0/30';
+                
+                loadQuestions();
+                alert(`✅ Викторина создана!\nКод: ${data.code}`);
+                
+            } catch (error) {
+                alert("Ошибка создания: " + error.message);
+            }
         };
 
         window.startNextQuestion = function() {
+            if (!questions || questions.length === 0) {
+                alert("Вопросы еще не загрузились");
+                return;
+            }
+            
             const question = questions[currentQuestionIndex];
             if (!question) {
                 alert("🎉 Все вопросы пройдены!");
@@ -1557,12 +1635,20 @@ const TEACHER_HTML = `<!DOCTYPE html>
             }
             
             presentationQuestion.innerHTML = `<h2>${question.text}</h2>`;
+            
+            // Удаляем старые блоки ответов
+            const oldAnswers = presentationQuestion.querySelectorAll('.answer-block');
+            oldAnswers.forEach(el => el.remove());
+            
             presentationMode.classList.add('active');
-            presentationQNum.textContent = currentQuestionIndex + 1;
+            presentationQNum.textContent = (currentQuestionIndex + 1) + '/' + questions.length;
             
             currentQuestionIndex++;
-            currentQ.textContent = currentQuestionIndex + '/30';
+            currentQ.textContent = currentQuestionIndex + '/' + questions.length;
             updateQuestionsList();
+            
+            showAnswerBtn.disabled = false;
+            nextQuestionBtn.disabled = true;
         };
 
         window.showAnswer = function() {
@@ -1570,13 +1656,24 @@ const TEACHER_HTML = `<!DOCTYPE html>
             if (!q) return;
             
             const correctAnswer = q.options[q.correct];
+            
+            // Удаляем старый блок ответа
+            const oldAnswer = presentationQuestion.querySelector('.answer-block');
+            if (oldAnswer) oldAnswer.remove();
+            
+            // Создаём новый блок
             const answerBlock = document.createElement('div');
             answerBlock.className = 'answer-block';
             answerBlock.innerHTML = `
-                <h3 style="color: #0f0;">✅ ПРАВИЛЬНЫЙ ОТВЕТ:</h3>
+                <h3 style="color: #0f0; margin-bottom: 15px;">✅ ПРАВИЛЬНЫЙ ОТВЕТ:</h3>
                 <div class="correct-answer">${correctAnswer}</div>
+                <div class="explanation">${q.explanation || ''}</div>
             `;
+            
             presentationQuestion.appendChild(answerBlock);
+            
+            showAnswerBtn.disabled = true;
+            nextQuestionBtn.disabled = false;
         };
 
         window.nextQuestion = function() {
@@ -1588,36 +1685,61 @@ const TEACHER_HTML = `<!DOCTYPE html>
         };
 
         window.resetGame = function() {
-            currentGameId = null;
-            currentQuestionIndex = 0;
-            startSection.style.display = 'block';
-            gameControls.style.display = 'none';
-            gameCodeDisplay.textContent = '----';
-            playerCount.textContent = '0';
-            playersCount.textContent = '0';
-            currentQ.textContent = '0/30';
-            playersList.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>Ожидание игроков...</p></div>';
-            updateQuestionsList();
+            if (confirm("Сбросить викторину и начать заново?")) {
+                currentGameId = null;
+                currentQuestionIndex = 0;
+                questions = [];
+                startSection.style.display = 'block';
+                gameControls.style.display = 'none';
+                gameCodeDisplay.textContent = '----';
+                playerCount.textContent = '0';
+                playersCount.textContent = '0';
+                currentQ.textContent = '0/30';
+                playersList.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>Ожидание игроков...</p></div>';
+                updateQuestionsList();
+            }
         };
 
         function updateQuestionsList() {
+            if (!questions || questions.length === 0) {
+                questionsList.innerHTML = '<div class="empty-state"><div class="empty-icon">📚</div><p>Загрузка вопросов...</p></div>';
+                return;
+            }
+            
             questionsList.innerHTML = questions.map((q, i) => {
                 const isCurrent = i === currentQuestionIndex - 1;
                 const isCompleted = i < currentQuestionIndex - 1;
-                let statusClass = isCurrent ? 'active' : isCompleted ? 'completed' : '';
+                
+                let statusClass = '';
+                if (isCurrent) statusClass = 'active';
+                else if (isCompleted) statusClass = 'completed';
+                
+                let difficultyColor = q.difficulty === 'easy' ? '#0f0' : q.difficulty === 'medium' ? 'yellow' : 'red';
+                let difficultyText = q.difficulty === 'easy' ? 'ЛЁГКИЙ' : q.difficulty === 'medium' ? 'СРЕДНИЙ' : 'СЛОЖНЫЙ';
+                
                 return `
-                    <div class="question-item ${statusClass}">
+                    <div class="question-item ${statusClass}" onclick="jumpToQuestion(${i})">
                         <div class="question-number">${i + 1}</div>
-                        <div class="question-difficulty" style="color: ${q.difficulty === 'easy' ? '#0f0' : 'yellow'};">${q.difficulty.toUpperCase()}</div>
-                        <div class="question-status">${isCurrent ? '🔴' : isCompleted ? '✅' : '⏳'}</div>
+                        <div class="question-difficulty" style="color: ${difficultyColor};">${difficultyText}</div>
+                        <div class="question-status">
+                            ${isCurrent ? '🔴' : isCompleted ? '✅' : '⏳'}
+                        </div>
                     </div>
                 `;
             }).join('');
         }
 
+        window.jumpToQuestion = function(index) {
+            if (!currentGameId) {
+                alert("Сначала создайте викторину!");
+                return;
+            }
+            currentQuestionIndex = index;
+            startNextQuestion();
+        };
+
         document.addEventListener('DOMContentLoaded', function() {
             console.log("✅ Teacher panel загружен");
-            updateQuestionsList();
         });
     </script>
 </body>
@@ -1919,6 +2041,7 @@ const STUDENT_HTML = `<!DOCTYPE html>
         let playerName = null;
         let currentQuestion = null;
         let hasAnswered = false;
+        let ws = null;
 
         const joinScreen = document.getElementById('joinScreen');
         const waitingScreen = document.getElementById('waitingScreen');
@@ -1945,7 +2068,7 @@ const STUDENT_HTML = `<!DOCTYPE html>
             document.getElementById(screen + 'Screen').classList.add('active');
         }
 
-        window.joinGame = function() {
+        async function joinGame() {
             const name = playerNameInput.value.trim();
             const code = gameCodeInput.value.trim();
             
@@ -1955,18 +2078,38 @@ const STUDENT_HTML = `<!DOCTYPE html>
             playerName = name;
             currentGameId = "game_" + code;
             
-            displayName.textContent = playerName;
-            displayCode.textContent = code;
-            switchScreen('waiting');
-        };
+            try {
+                // Регистрируем игрока
+                const response = await fetch(\`/api/games/\${currentGameId}/players\`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        name: playerName,
+                        device: /Mobi|Android/i.test(navigator.userAgent) ? "📱 Телефон" : "💻 Компьютер"
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Ошибка подключения');
+                }
+                
+                displayName.textContent = playerName;
+                displayCode.textContent = code;
+                switchScreen('waiting');
+                
+            } catch (error) {
+                showError(error.message);
+            }
+        }
 
-        window.leaveGame = function() {
+        function leaveGame() {
             currentGameId = null;
             playerName = null;
             switchScreen('join');
             playerNameInput.value = '';
             gameCodeInput.value = '';
-        };
+        }
 
         joinButton.addEventListener('click', joinGame);
     </script>
