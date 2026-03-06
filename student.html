@@ -1,101 +1,290 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ученик - Кибер Кахут</title>
     <style>
-        body {
-            background: black;
-            color: #0f0;
-            font-family: monospace;
-            padding: 20px;
-        }
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        h1 {
-            text-align: center;
-        }
-        input, button {
-            width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            background: black;
-            color: #0f0;
-            border: 2px solid #0f0;
-            font-size: 1rem;
+        * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
         }
-        button {
-            background: #0f0;
-            color: black;
+        
+        body {
+            background: #0a0a0a;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .card {
+            background: #111;
+            border: 2px solid #0f0;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 2rem;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        input {
+            width: 100%;
+            padding: 15px;
+            background: #000;
+            border: 2px solid #0f0;
+            border-radius: 12px;
+            color: #0f0;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+        
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 20px #0f0;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 18px;
+            background: #000;
+            color: #0f0;
+            border: 2px solid #0f0;
+            border-radius: 12px;
+            font-size: 1.2rem;
             font-weight: bold;
             cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px 0;
         }
-        button:hover {
+        
+        .btn:hover {
+            background: #0f0;
+            color: #000;
             box-shadow: 0 0 30px #0f0;
         }
-        .message {
-            padding: 10px;
-            margin: 10px 0;
-            text-align: center;
-            border-radius: 5px;
-        }
+        
         .error {
-            border: 1px solid red;
-            color: red;
+            color: #ff4444;
+            text-align: center;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ff4444;
+            border-radius: 10px;
+            background: rgba(255, 68, 68, 0.1);
         }
-        .success {
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #000;
             border: 1px solid #0f0;
-            color: #0f0;
+            border-radius: 12px;
+        }
+        
+        .question-box {
+            margin: 25px 0;
+        }
+        
+        .question-text {
+            font-size: 1.4rem;
+            line-height: 1.5;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        .option {
+            background: #000;
+            border: 2px solid #0f0;
+            border-radius: 12px;
+            padding: 18px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1.1rem;
+        }
+        
+        .option:hover {
+            background: #0f0;
+            color: #000;
+            transform: translateX(5px);
+        }
+        
+        .option.selected {
+            background: #0f0;
+            color: #000;
+        }
+        
+        .waiting {
+            text-align: center;
+            padding: 40px 0;
+        }
+        
+        .loader {
+            border: 4px solid #0f0;
+            border-top: 4px solid transparent;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .score {
+            font-size: 1.5rem;
+            color: #ff00ff;
+            text-align: center;
+        }
+        
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🧑‍🎓 УЧЕНИК</h1>
+        <div class="card" id="joinCard">
+            <h1>🧑‍🎓 ВХОД</h1>
+            
+            <div class="input-group">
+                <label>👤 ТВОЁ ИМЯ</label>
+                <input type="text" id="playerName" placeholder="Имя" maxlength="15">
+            </div>
+            
+            <div class="input-group">
+                <label>🔢 КОД ИГРЫ</label>
+                <input type="text" id="gameCode" placeholder="8 цифр" maxlength="8">
+            </div>
+            
+            <button class="btn" onclick="joinGame()">🔌 ПОДКЛЮЧИТЬСЯ</button>
+            <div id="errorMessage" class="hidden error"></div>
+        </div>
         
-        <input type="text" id="playerName" placeholder="Твоё имя">
-        <input type="text" id="gameCode" placeholder="Код игры">
-        <button onclick="joinGame()">🔌 ПОДКЛЮЧИТЬСЯ</button>
+        <div class="card hidden" id="waitingCard">
+            <div class="header">
+                <span id="waitingName"></span>
+                <span id="waitingCode"></span>
+            </div>
+            
+            <div class="waiting">
+                <div class="loader"></div>
+                <h2>ОЖИДАНИЕ...</h2>
+                <p>Ждите, пока учитель начнёт викторину</p>
+            </div>
+            
+            <button class="btn" onclick="leaveGame()">🚪 ВЫЙТИ</button>
+        </div>
         
-        <div id="message"></div>
+        <div class="card hidden" id="gameCard">
+            <div class="header">
+                <span>Вопрос <span id="questionNum">1</span>/15</span>
+                <span class="score" id="playerScore">0</span>
+            </div>
+            
+            <div class="question-box">
+                <div class="question-text" id="questionText"></div>
+                <div id="optionsContainer"></div>
+            </div>
+            
+            <div id="resultMessage" class="hidden"></div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        const StudentApp = {};
+        // Конфигурация Supabase
+        const SUPABASE_URL = 'https://gluqnmznmjvlyguzkdrn.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_OUdy33oOIQlOce88IXAP9w_G74CkWr_';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        window.addEventListener('load', function() {
-            try {
-                StudentApp.supabase = window.supabase.createClient(
-                    'https://gluqnmznmjvlyguzkdrn.supabase.co',
-                    'sb_publishable_OUdy33oOIQlOce88IXAP9w_G74CkWr_'
-                );
-                console.log('✅ Supabase готов');
-            } catch (e) {
-                console.error('❌ Ошибка:', e);
-            }
-        });
+        // Вопросы
+        const QUESTIONS = [
+            { id: 1, text: "Что такое фишинг?", options: ["Вид рыбалки", "Кража данных", "Антивирус", "Шифрование"], correct: 1, points: 1 },
+            { id: 2, text: "Какой пароль самый ненадежный?", options: ["G7$k2!mN9", "Tr0ub4dor&3", "qwerty123", "P@ssw0rd!$"], correct: 2, points: 1 },
+            { id: 3, text: "Что такое 2FA?", options: ["2 аккаунта", "2 фактора", "2 файла", "2 вируса"], correct: 1, points: 1 },
+            { id: 4, text: "Что такое VPN?", options: ["Вирус", "Частная сеть", "Пароль", "Антивирус"], correct: 1, points: 1 },
+            { id: 5, text: "Что такое бэкап?", options: ["Копия", "Удаление", "Вирус", "Игра"], correct: 0, points: 1 },
+            { id: 6, text: "Что такое социальная инженерия?", options: ["Инженерия", "Обман людей", "Строительство", "Шифрование"], correct: 1, points: 2 },
+            { id: 7, text: "Что такое вредоносное ПО?", options: ["Игра", "Вирусы", "Антивирус", "Браузер"], correct: 1, points: 2 },
+            { id: 8, text: "Что такое кибербуллинг?", options: ["Взлом", "Травля в сети", "Вирус", "Спорт"], correct: 1, points: 2 },
+            { id: 9, text: "Чем опасен публичный Wi-Fi?", options: ["Бесплатно", "Кража данных", "Медленно", "Не опасно"], correct: 1, points: 2 },
+            { id: 10, text: "Зачем обновлять программы?", options: ["Новые кнопки", "Закрыть уязвимости", "Деньги", "Трафик"], correct: 1, points: 2 },
+            { id: 11, text: "Что такое программа-вымогатель?", options: ["Игра", "Блокирует файлы", "Антивирус", "Браузер"], correct: 1, points: 3 },
+            { id: 12, text: "Что такое сниффер?", options: ["Нюхач", "Перехват данных", "Фильтр", "Антивирус"], correct: 1, points: 3 },
+            { id: 13, text: "Что такое ботнет?", options: ["Сеть зомби", "Робот", "Соцсеть", "Браузер"], correct: 0, points: 3 },
+            { id: 14, text: "Что такое Honeypot?", options: ["Приманка", "Антивирус", "Пароль", "Сейф"], correct: 0, points: 3 },
+            { id: 15, text: "Главное правило безопасности?", options: ["Секретов нет", "Проверять информацию", "Длинный пароль", "Антивирус"], correct: 1, points: 3 }
+        ];
 
+        // Состояние
+        let gameCode = null;
+        let playerName = null;
+        let currentQuestion = 0;
+        let playerScore = 0;
+        let subscription = null;
+
+        // Функция подключения
         window.joinGame = async function() {
-            if (!StudentApp.supabase) {
-                alert('Подождите, инициализация...');
-                return;
-            }
-
             const name = document.getElementById('playerName').value.trim();
             const code = document.getElementById('gameCode').value.trim();
-            const msgDiv = document.getElementById('message');
-
-            if (!name || !code) {
-                msgDiv.innerHTML = '<div class="message error">Введите имя и код</div>';
+            const errorDiv = document.getElementById('errorMessage');
+            
+            errorDiv.classList.add('hidden');
+            
+            if (!name || name.length < 2) {
+                showError('Введите имя (мин. 2 символа)');
                 return;
             }
-
+            
+            if (!code || code.length !== 8 || !/^\d+$/.test(code)) {
+                showError('Введите 8 цифр кода');
+                return;
+            }
+            
             try {
-                const { error } = await StudentApp.supabase
+                const { data: game, error: gameError } = await supabase
+                    .from('games')
+                    .select('*')
+                    .eq('code', code)
+                    .single();
+                
+                if (gameError || !game) {
+                    showError('Игра не найдена');
+                    return;
+                }
+                
+                const { error: insertError } = await supabase
                     .from('players')
                     .insert({
                         game_code: code,
@@ -104,18 +293,121 @@
                         answered: false,
                         joined_at: Date.now()
                     });
-
-                if (error) {
-                    msgDiv.innerHTML = '<div class="message error">Это имя уже занято</div>';
-                } else {
-                    msgDiv.innerHTML = '<div class="message success">✅ Подключено! Ждите...</div>';
-                    document.getElementById('playerName').disabled = true;
-                    document.getElementById('gameCode').disabled = true;
+                
+                if (insertError) {
+                    showError('Игрок с таким именем уже есть');
+                    return;
                 }
-
+                
+                gameCode = code;
+                playerName = name;
+                
+                document.getElementById('joinCard').classList.add('hidden');
+                document.getElementById('waitingCard').classList.remove('hidden');
+                document.getElementById('waitingName').innerText = '👤 ' + name;
+                document.getElementById('waitingCode').innerText = '🔢 ' + code;
+                
+                startListening();
+                
             } catch (e) {
-                msgDiv.innerHTML = '<div class="message error">Ошибка сети</div>';
+                showError('Ошибка сети');
             }
+        };
+
+        function showError(msg) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerText = msg;
+            errorDiv.classList.remove('hidden');
+        }
+
+        function startListening() {
+            if (subscription) subscription.unsubscribe();
+            
+            subscription = supabase
+                .channel('game')
+                .on('postgres_changes', {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'games',
+                    filter: `code=eq.${gameCode}`
+                }, handleGameUpdate)
+                .subscribe();
+        }
+
+        function handleGameUpdate(payload) {
+            if (payload.new.status === 'active') {
+                startGame();
+            }
+        }
+
+        function startGame() {
+            document.getElementById('waitingCard').classList.add('hidden');
+            document.getElementById('gameCard').classList.remove('hidden');
+            showQuestion(0);
+        }
+
+        function showQuestion(index) {
+            if (index >= QUESTIONS.length) {
+                endGame();
+                return;
+            }
+            
+            currentQuestion = index;
+            const q = QUESTIONS[index];
+            
+            document.getElementById('questionNum').innerText = (index + 1) + '/' + QUESTIONS.length;
+            document.getElementById('questionText').innerText = q.text;
+            
+            let optionsHtml = '';
+            q.options.forEach((opt, i) => {
+                optionsHtml += `<div class="option" onclick="selectAnswer(${i})">${opt}</div>`;
+            });
+            document.getElementById('optionsContainer').innerHTML = optionsHtml;
+        }
+
+        window.selectAnswer = async function(answerIndex) {
+            const q = QUESTIONS[currentQuestion];
+            
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.style.pointerEvents = 'none';
+            });
+            
+            const isCorrect = (answerIndex === q.correct);
+            
+            const options = document.querySelectorAll('.option');
+            options[answerIndex].classList.add('selected');
+            
+            if (isCorrect) {
+                playerScore += q.points;
+                document.getElementById('playerScore').innerText = playerScore;
+                
+                await supabase
+                    .from('players')
+                    .update({ score: playerScore, answered: true })
+                    .eq('game_code', gameCode)
+                    .eq('name', playerName);
+            }
+            
+            setTimeout(() => {
+                if (currentQuestion + 1 < QUESTIONS.length) {
+                    showQuestion(currentQuestion + 1);
+                } else {
+                    endGame();
+                }
+            }, 1000);
+        };
+
+        function endGame() {
+            document.getElementById('gameCard').innerHTML = `
+                <h2 style="text-align: center;">🎉 ВИКТОРИНА ОКОНЧЕНА!</h2>
+                <p style="text-align: center; font-size: 2rem; margin: 30px 0;">${playerScore} очков</p>
+                <button class="btn" onclick="location.reload()">🔄 НОВАЯ ИГРА</button>
+            `;
+        }
+
+        window.leaveGame = function() {
+            if (subscription) subscription.unsubscribe();
+            location.reload();
         };
     </script>
 </body>
