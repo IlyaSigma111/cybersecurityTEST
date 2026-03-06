@@ -1,41 +1,41 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Учитель - Кибер Кахут</title>
     <style>
         body {
-            background: #0a0a0a;
+            background: black;
             color: #0f0;
             font-family: monospace;
             padding: 20px;
-            text-align: center;
         }
         .container {
             max-width: 600px;
             margin: 0 auto;
+            text-align: center;
         }
         .code-box {
             border: 2px solid #0f0;
-            padding: 20px;
+            padding: 30px;
             margin: 20px 0;
-            font-size: 3rem;
+            font-size: 4rem;
+            background: #111;
         }
-        .btn {
-            background: #000;
-            color: #0f0;
-            border: 2px solid #0f0;
+        button {
+            background: #0f0;
+            color: black;
+            border: none;
             padding: 15px 30px;
             font-size: 1.2rem;
             cursor: pointer;
             margin: 10px;
+            font-weight: bold;
         }
-        .btn:hover {
-            background: #0f0;
-            color: #000;
+        button:hover {
+            box-shadow: 0 0 30px #0f0;
         }
-        #players {
+        .players {
             margin-top: 20px;
             text-align: left;
         }
@@ -43,87 +43,99 @@
             border: 1px solid #0f0;
             padding: 10px;
             margin: 5px 0;
+            background: #111;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>👨‍🏫 Учитель</h1>
+        <h1>👨‍🏫 УЧИТЕЛЬ</h1>
         
-        <div class="code-box" id="gameCode">----</div>
+        <div class="code-box" id="codeDisplay">----</div>
         
-        <button class="btn" onclick="createGame()" id="createBtn">🎮 СОЗДАТЬ ИГРУ</button>
+        <button onclick="createGame()" id="createBtn">🎮 СОЗДАТЬ ИГРУ</button>
         
         <div id="gamePanel" style="display: none;">
-            <h2>Игроки:</h2>
-            <div id="players"></div>
+            <h2>ИГРОКИ:</h2>
+            <div class="players" id="playersList"></div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // ========== ЭТА ВЕРСИЯ ТОЧНО РАБОТАЕТ ==========
-        const SUPABASE_URL = 'https://gluqnmznmjvlyguzkdrn.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_OUdy33oOIQlOce88IXAP9w_G74CkWr_';
-        
-        // Создаём клиент
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        let currentGameCode = null;
-        let interval = null;
-        
-        // Функция создания игры
+        // Используем уникальное имя, чтобы не было конфликтов
+        const App = {};
+
+        // Инициализация после полной загрузки страницы
+        window.addEventListener('load', function() {
+            try {
+                App.supabase = window.supabase.createClient(
+                    'https://gluqnmznmjvlyguzkdrn.supabase.co',
+                    'sb_publishable_OUdy33oOIQlOce88IXAP9w_G74CkWr_'
+                );
+                console.log('✅ Supabase готов');
+            } catch (e) {
+                console.error('❌ Ошибка Supabase:', e);
+            }
+        });
+
+        // Глобальная функция создания игры
         window.createGame = async function() {
+            if (!App.supabase) {
+                alert('Подождите, инициализация...');
+                return;
+            }
+
             try {
                 const code = Math.floor(10000000 + Math.random() * 90000000).toString();
                 
-                const { error } = await supabase
+                const { error } = await App.supabase
                     .from('games')
-                    .insert({ code: code, created_at: Date.now() });
+                    .insert({ 
+                        code: code, 
+                        created_at: Date.now() 
+                    });
                 
-                if (error) {
-                    alert('Ошибка: ' + error.message);
-                    return;
-                }
+                if (error) throw error;
                 
-                currentGameCode = code;
-                document.getElementById('gameCode').innerText = code;
+                App.gameCode = code;
+                document.getElementById('codeDisplay').innerText = code;
                 document.getElementById('createBtn').style.display = 'none';
                 document.getElementById('gamePanel').style.display = 'block';
                 
-                // Запускаем обновление игроков
-                if (interval) clearInterval(interval);
+                // Обновление игроков
                 updatePlayers();
-                interval = setInterval(updatePlayers, 2000);
+                setInterval(updatePlayers, 2000);
                 
             } catch (e) {
                 alert('Ошибка: ' + e.message);
             }
         };
-        
+
         // Функция обновления списка игроков
         async function updatePlayers() {
-            if (!currentGameCode) return;
+            if (!App.gameCode || !App.supabase) return;
             
             try {
-                const { data, error } = await supabase
+                const { data, error } = await App.supabase
                     .from('players')
                     .select('*')
-                    .eq('game_code', currentGameCode);
+                    .eq('game_code', App.gameCode);
                 
-                if (error) return;
+                if (error) throw error;
                 
-                const playersDiv = document.getElementById('players');
+                const list = document.getElementById('playersList');
                 
-                if (data.length === 0) {
-                    playersDiv.innerHTML = '<p>👤 Ожидание игроков...</p>';
+                if (!data || data.length === 0) {
+                    list.innerHTML = '<div class="player">👤 Ожидание игроков...</div>';
                 } else {
-                    playersDiv.innerHTML = data.map(p => 
+                    list.innerHTML = data.map(p => 
                         `<div class="player">👤 ${p.name} | 🎯 ${p.score || 0}</div>`
                     ).join('');
                 }
+                
             } catch (e) {
-                console.error('Error:', e);
+                console.error('Ошибка обновления:', e);
             }
         }
     </script>
