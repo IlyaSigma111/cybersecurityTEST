@@ -8,20 +8,14 @@
         body {
             background: #0a0a0a;
             color: #0f0;
-            font-family: 'Courier New', monospace;
+            font-family: monospace;
             padding: 20px;
+            text-align: center;
         }
-        
         .container {
             max-width: 400px;
             margin: 0 auto;
         }
-        
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
         input, button {
             width: 100%;
             padding: 15px;
@@ -29,40 +23,28 @@
             background: #000;
             color: #0f0;
             border: 2px solid #0f0;
-            border-radius: 10px;
             font-size: 1rem;
         }
-        
         button {
             background: #0f0;
             color: #000;
-            font-weight: bold;
             cursor: pointer;
+            font-weight: bold;
         }
-        
-        button:hover {
-            box-shadow: 0 0 30px #0f0;
-        }
-        
-        .error {
-            color: red;
-            text-align: center;
+        .message {
             margin: 10px 0;
+            padding: 10px;
         }
-        
-        .success {
-            color: #0f0;
-            text-align: center;
-            margin: 10px 0;
-        }
+        .error { color: red; border: 1px solid red; }
+        .success { color: #0f0; border: 1px solid #0f0; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🧑‍🎓 Ученик</h1>
         
-        <input type="text" id="playerName" placeholder="Твоё имя">
-        <input type="text" id="gameCode" placeholder="Код игры">
+        <input type="text" id="name" placeholder="Твоё имя">
+        <input type="text" id="code" placeholder="Код игры">
         <button onclick="joinGame()">🔌 ПОДКЛЮЧИТЬСЯ</button>
         
         <div id="message"></div>
@@ -75,30 +57,17 @@
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
         window.joinGame = async function() {
-            const name = document.getElementById('playerName').value.trim();
-            const code = document.getElementById('gameCode').value.trim();
+            const name = document.getElementById('name').value.trim();
+            const code = document.getElementById('code').value.trim();
             const msgDiv = document.getElementById('message');
             
             if (!name || !code) {
-                msgDiv.innerHTML = '<div class="error">Введите имя и код</div>';
+                msgDiv.innerHTML = '<div class="message error">Введите имя и код</div>';
                 return;
             }
             
             try {
-                // Проверяем игру
-                const { data: game, error: gameError } = await supabase
-                    .from('games')
-                    .select('*')
-                    .eq('code', code)
-                    .single();
-                
-                if (gameError || !game) {
-                    msgDiv.innerHTML = '<div class="error">Игра не найдена</div>';
-                    return;
-                }
-                
-                // Добавляем игрока
-                const { error: insertError } = await supabase
+                const { error } = await supabase
                     .from('players')
                     .insert({
                         game_code: code,
@@ -108,15 +77,14 @@
                         joined_at: Date.now()
                     });
                 
-                if (insertError) {
-                    msgDiv.innerHTML = '<div class="error">Игрок с таким именем уже есть</div>';
-                    return;
+                if (error) {
+                    msgDiv.innerHTML = '<div class="message error">Игрок с таким именем уже есть</div>';
+                } else {
+                    msgDiv.innerHTML = '<div class="message success">✅ Подключено! Ждите...</div>';
                 }
                 
-                msgDiv.innerHTML = '<div class="success">✅ Подключено! Ждите...</div>';
-                
             } catch (e) {
-                msgDiv.innerHTML = '<div class="error">Ошибка подключения</div>';
+                msgDiv.innerHTML = '<div class="message error">Ошибка подключения</div>';
             }
         };
     </script>
