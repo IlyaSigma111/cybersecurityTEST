@@ -1,50 +1,63 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ученик - Кибер Кахут</title>
     <style>
         body {
-            background: #0a0a0a;
+            background: black;
             color: #0f0;
             font-family: monospace;
             padding: 20px;
-            text-align: center;
         }
         .container {
             max-width: 400px;
             margin: 0 auto;
         }
+        h1 {
+            text-align: center;
+        }
         input, button {
             width: 100%;
             padding: 15px;
             margin: 10px 0;
-            background: #000;
+            background: black;
             color: #0f0;
             border: 2px solid #0f0;
             font-size: 1rem;
+            box-sizing: border-box;
         }
         button {
             background: #0f0;
-            color: #000;
-            cursor: pointer;
+            color: black;
             font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover {
+            box-shadow: 0 0 30px #0f0;
         }
         .message {
-            margin: 10px 0;
             padding: 10px;
+            margin: 10px 0;
+            text-align: center;
+            border-radius: 5px;
         }
-        .error { color: red; border: 1px solid red; }
-        .success { color: #0f0; border: 1px solid #0f0; }
+        .error {
+            border: 1px solid red;
+            color: red;
+        }
+        .success {
+            border: 1px solid #0f0;
+            color: #0f0;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🧑‍🎓 Ученик</h1>
+        <h1>🧑‍🎓 УЧЕНИК</h1>
         
-        <input type="text" id="name" placeholder="Твоё имя">
-        <input type="text" id="code" placeholder="Код игры">
+        <input type="text" id="playerName" placeholder="Твоё имя">
+        <input type="text" id="gameCode" placeholder="Код игры">
         <button onclick="joinGame()">🔌 ПОДКЛЮЧИТЬСЯ</button>
         
         <div id="message"></div>
@@ -52,22 +65,37 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        const SUPABASE_URL = 'https://gluqnmznmjvlyguzkdrn.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_OUdy33oOIQlOce88IXAP9w_G74CkWr_';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
+        const StudentApp = {};
+
+        window.addEventListener('load', function() {
+            try {
+                StudentApp.supabase = window.supabase.createClient(
+                    'https://gluqnmznmjvlyguzkdrn.supabase.co',
+                    'sb_publishable_OUdy33oOIQlOce88IXAP9w_G74CkWr_'
+                );
+                console.log('✅ Supabase готов');
+            } catch (e) {
+                console.error('❌ Ошибка:', e);
+            }
+        });
+
         window.joinGame = async function() {
-            const name = document.getElementById('name').value.trim();
-            const code = document.getElementById('code').value.trim();
+            if (!StudentApp.supabase) {
+                alert('Подождите, инициализация...');
+                return;
+            }
+
+            const name = document.getElementById('playerName').value.trim();
+            const code = document.getElementById('gameCode').value.trim();
             const msgDiv = document.getElementById('message');
-            
+
             if (!name || !code) {
                 msgDiv.innerHTML = '<div class="message error">Введите имя и код</div>';
                 return;
             }
-            
+
             try {
-                const { error } = await supabase
+                const { error } = await StudentApp.supabase
                     .from('players')
                     .insert({
                         game_code: code,
@@ -76,15 +104,17 @@
                         answered: false,
                         joined_at: Date.now()
                     });
-                
+
                 if (error) {
-                    msgDiv.innerHTML = '<div class="message error">Игрок с таким именем уже есть</div>';
+                    msgDiv.innerHTML = '<div class="message error">Это имя уже занято</div>';
                 } else {
                     msgDiv.innerHTML = '<div class="message success">✅ Подключено! Ждите...</div>';
+                    document.getElementById('playerName').disabled = true;
+                    document.getElementById('gameCode').disabled = true;
                 }
-                
+
             } catch (e) {
-                msgDiv.innerHTML = '<div class="message error">Ошибка подключения</div>';
+                msgDiv.innerHTML = '<div class="message error">Ошибка сети</div>';
             }
         };
     </script>
