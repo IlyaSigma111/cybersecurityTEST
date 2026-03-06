@@ -169,13 +169,6 @@
             color: #ff00ff;
         }
         
-        .player-status {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #ff00ff;
-        }
-        
         .questions-grid {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -336,7 +329,7 @@
         // ========== КОНФИГУРАЦИЯ SUPABASE ==========
         const SUPABASE_URL = 'https://gluqnmznmjvlyguzkdrn.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_OUdy33oOIQlOce88IXAP9w_G74CkWr_';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY);
         
         // ========== ВОПРОСЫ ==========
         const QUESTIONS = [
@@ -470,6 +463,8 @@
         // ========== ОТРИСОВКА ВОПРОСОВ ==========
         function renderQuestions() {
             const grid = document.getElementById('questionsGrid');
+            if (!grid) return;
+            
             grid.innerHTML = QUESTIONS.map((q, i) => {
                 let cls = 'question-card';
                 if (i === currentQuestionIndex) cls += ' active';
@@ -538,7 +533,12 @@
             
             const { error } = await supabase
                 .from('games')
-                .insert({ code, created_at: Date.now(), status: 'waiting' });
+                .insert({ 
+                    code: code, 
+                    created_at: Date.now(), 
+                    status: 'waiting',
+                    current_question: 0
+                });
             
             if (error) {
                 alert('Ошибка создания игры: ' + error.message);
@@ -554,7 +554,7 @@
             if (subscription) subscription.unsubscribe();
             
             subscription = supabase
-                .channel('players')
+                .channel('players-channel')
                 .on('postgres_changes', { 
                     event: '*', 
                     schema: 'public', 
@@ -592,6 +592,9 @@
                 `).join('');
             }
         }
+        
+        // ========== ИНИЦИАЛИЗАЦИЯ ==========
+        renderQuestions();
     </script>
 </body>
 </html>
