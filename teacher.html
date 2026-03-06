@@ -326,133 +326,30 @@
     </div>
 
     <script>
-        // ========== КОНФИГУРАЦИЯ SUPABASE ==========
+        // ========== ИНИЦИАЛИЗАЦИЯ SUPABASE ==========
         const SUPABASE_URL = 'https://gluqnmznmjvlyguzkdrn.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_OUdy33oOIQlOce88IXAP9w_G74CkWr_';
-        const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Создаём клиент Supabase (один раз)
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
         // ========== ВОПРОСЫ ==========
         const QUESTIONS = [
-            {
-                id: 1,
-                text: "Что такое фишинг?",
-                options: ["Вид рыбалки", "Кража данных", "Антивирус", "Шифрование"],
-                correct: 1,
-                points: 1,
-                difficulty: "easy"
-            },
-            {
-                id: 2,
-                text: "Какой пароль самый ненадежный?",
-                options: ["G7$k2!mN9", "Tr0ub4dor&3", "qwerty123", "P@ssw0rd!$"],
-                correct: 2,
-                points: 1,
-                difficulty: "easy"
-            },
-            {
-                id: 3,
-                text: "Что такое 2FA?",
-                options: ["2 аккаунта", "2 фактора", "2 файла", "2 вируса"],
-                correct: 1,
-                points: 1,
-                difficulty: "easy"
-            },
-            {
-                id: 4,
-                text: "Что такое VPN?",
-                options: ["Вирус", "Частная сеть", "Пароль", "Антивирус"],
-                correct: 1,
-                points: 1,
-                difficulty: "easy"
-            },
-            {
-                id: 5,
-                text: "Что такое бэкап?",
-                options: ["Копия", "Удаление", "Вирус", "Игра"],
-                correct: 0,
-                points: 1,
-                difficulty: "easy"
-            },
-            {
-                id: 6,
-                text: "Что такое социальная инженерия?",
-                options: ["Инженерия", "Обман людей", "Строительство", "Шифрование"],
-                correct: 1,
-                points: 2,
-                difficulty: "medium"
-            },
-            {
-                id: 7,
-                text: "Что такое вредоносное ПО?",
-                options: ["Игра", "Вирусы", "Антивирус", "Браузер"],
-                correct: 1,
-                points: 2,
-                difficulty: "medium"
-            },
-            {
-                id: 8,
-                text: "Что такое кибербуллинг?",
-                options: ["Взлом", "Травля в сети", "Вирус", "Спорт"],
-                correct: 1,
-                points: 2,
-                difficulty: "medium"
-            },
-            {
-                id: 9,
-                text: "Чем опасен публичный Wi-Fi?",
-                options: ["Бесплатно", "Кража данных", "Медленно", "Не опасно"],
-                correct: 1,
-                points: 2,
-                difficulty: "medium"
-            },
-            {
-                id: 10,
-                text: "Зачем обновлять программы?",
-                options: ["Новые кнопки", "Закрыть уязвимости", "Деньги", "Трафик"],
-                correct: 1,
-                points: 2,
-                difficulty: "medium"
-            },
-            {
-                id: 11,
-                text: "Что такое программа-вымогатель?",
-                options: ["Игра", "Блокирует файлы", "Антивирус", "Браузер"],
-                correct: 1,
-                points: 3,
-                difficulty: "hard"
-            },
-            {
-                id: 12,
-                text: "Что такое сниффер?",
-                options: ["Нюхач", "Перехват данных", "Фильтр", "Антивирус"],
-                correct: 1,
-                points: 3,
-                difficulty: "hard"
-            },
-            {
-                id: 13,
-                text: "Что такое ботнет?",
-                options: ["Сеть зомби", "Робот", "Соцсеть", "Браузер"],
-                correct: 0,
-                points: 3,
-                difficulty: "hard"
-            },
-            {
-                id: 14,
-                text: "Что такое Honeypot?",
-                options: ["Приманка", "Антивирус", "Пароль", "Сейф"],
-                correct: 0,
-                points: 3,
-                difficulty: "hard"
-            },
-            {
-                id: 15,
-                text: "Главное правило безопасности?",
-                options: ["Секретов нет", "Проверять информацию", "Длинный пароль", "Антивирус"],
-                correct: 1,
-                points: 3,
-                difficulty: "hard"
-            }
+            { id: 1, text: "Что такое фишинг?", options: ["Вид рыбалки", "Кража данных", "Антивирус", "Шифрование"], correct: 1, points: 1, difficulty: "easy" },
+            { id: 2, text: "Какой пароль самый ненадежный?", options: ["G7$k2!mN9", "Tr0ub4dor&3", "qwerty123", "P@ssw0rd!$"], correct: 2, points: 1, difficulty: "easy" },
+            { id: 3, text: "Что такое 2FA?", options: ["2 аккаунта", "2 фактора", "2 файла", "2 вируса"], correct: 1, points: 1, difficulty: "easy" },
+            { id: 4, text: "Что такое VPN?", options: ["Вирус", "Частная сеть", "Пароль", "Антивирус"], correct: 1, points: 1, difficulty: "easy" },
+            { id: 5, text: "Что такое бэкап?", options: ["Копия", "Удаление", "Вирус", "Игра"], correct: 0, points: 1, difficulty: "easy" },
+            { id: 6, text: "Что такое социальная инженерия?", options: ["Инженерия", "Обман людей", "Строительство", "Шифрование"], correct: 1, points: 2, difficulty: "medium" },
+            { id: 7, text: "Что такое вредоносное ПО?", options: ["Игра", "Вирусы", "Антивирус", "Браузер"], correct: 1, points: 2, difficulty: "medium" },
+            { id: 8, text: "Что такое кибербуллинг?", options: ["Взлом", "Травля в сети", "Вирус", "Спорт"], correct: 1, points: 2, difficulty: "medium" },
+            { id: 9, text: "Чем опасен публичный Wi-Fi?", options: ["Бесплатно", "Кража данных", "Медленно", "Не опасно"], correct: 1, points: 2, difficulty: "medium" },
+            { id: 10, text: "Зачем обновлять программы?", options: ["Новые кнопки", "Закрыть уязвимости", "Деньги", "Трафик"], correct: 1, points: 2, difficulty: "medium" },
+            { id: 11, text: "Что такое программа-вымогатель?", options: ["Игра", "Блокирует файлы", "Антивирус", "Браузер"], correct: 1, points: 3, difficulty: "hard" },
+            { id: 12, text: "Что такое сниффер?", options: ["Нюхач", "Перехват данных", "Фильтр", "Антивирус"], correct: 1, points: 3, difficulty: "hard" },
+            { id: 13, text: "Что такое ботнет?", options: ["Сеть зомби", "Робот", "Соцсеть", "Браузер"], correct: 0, points: 3, difficulty: "hard" },
+            { id: 14, text: "Что такое Honeypot?", options: ["Приманка", "Антивирус", "Пароль", "Сейф"], correct: 0, points: 3, difficulty: "hard" },
+            { id: 15, text: "Главное правило безопасности?", options: ["Секретов нет", "Проверять информацию", "Длинный пароль", "Антивирус"], correct: 1, points: 3, difficulty: "hard" }
         ];
         
         // ========== СОСТОЯНИЕ ==========
@@ -481,7 +378,10 @@
                 `;
             }).join('');
             
-            document.getElementById('questionProgress').innerText = (currentQuestionIndex + 1) + '/' + QUESTIONS.length;
+            const progressEl = document.getElementById('questionProgress');
+            if (progressEl) {
+                progressEl.innerText = (currentQuestionIndex + 1) + '/' + QUESTIONS.length;
+            }
         }
         
         // ========== ВЫБОР ВОПРОСА ==========
@@ -529,72 +429,82 @@
         
         // ========== СОЗДАТЬ ИГРУ ==========
         window.createGame = async function() {
-            const code = Math.floor(10000000 + Math.random() * 90000000).toString();
-            
-            const { error } = await supabase
-                .from('games')
-                .insert({ 
-                    code: code, 
-                    created_at: Date.now(), 
-                    status: 'waiting',
-                    current_question: 0
-                });
-            
-            if (error) {
-                alert('Ошибка создания игры: ' + error.message);
-                return;
+            try {
+                const code = Math.floor(10000000 + Math.random() * 90000000).toString();
+                
+                const { error } = await supabase
+                    .from('games')
+                    .insert({ 
+                        code: code, 
+                        created_at: Date.now(), 
+                        status: 'waiting',
+                        current_question: 0
+                    });
+                
+                if (error) {
+                    alert('Ошибка создания игры: ' + error.message);
+                    return;
+                }
+                
+                currentGameCode = code;
+                document.getElementById('gameCodeDisplay').innerText = code;
+                document.getElementById('createBtn').style.display = 'none';
+                document.getElementById('gamePanel').style.display = 'block';
+                
+                // Подписка на изменения игроков
+                if (subscription) subscription.unsubscribe();
+                
+                subscription = supabase
+                    .channel('players-channel')
+                    .on('postgres_changes', { 
+                        event: '*', 
+                        schema: 'public', 
+                        table: 'players',
+                        filter: `game_code=eq.${code}`
+                    }, updatePlayersList)
+                    .subscribe();
+                
+                selectQuestion(0);
+            } catch (e) {
+                alert('Ошибка: ' + e.message);
             }
-            
-            currentGameCode = code;
-            document.getElementById('gameCodeDisplay').innerText = code;
-            document.getElementById('createBtn').style.display = 'none';
-            document.getElementById('gamePanel').style.display = 'block';
-            
-            // Подписка на изменения игроков
-            if (subscription) subscription.unsubscribe();
-            
-            subscription = supabase
-                .channel('players-channel')
-                .on('postgres_changes', { 
-                    event: '*', 
-                    schema: 'public', 
-                    table: 'players',
-                    filter: `game_code=eq.${code}`
-                }, updatePlayersList)
-                .subscribe();
-            
-            selectQuestion(0);
         };
         
         // ========== ОБНОВЛЕНИЕ СПИСКА ИГРОКОВ ==========
         async function updatePlayersList() {
             if (!currentGameCode) return;
             
-            const { data, error } = await supabase
-                .from('players')
-                .select('*')
-                .eq('game_code', currentGameCode);
-            
-            if (error) return;
-            
-            document.getElementById('playerCount').innerText = data.length;
-            document.getElementById('answeredCount').innerText = data.filter(p => p.answered).length;
-            
-            const list = document.getElementById('playersList');
-            if (data.length === 0) {
-                list.innerHTML = '<div style="text-align: center; padding: 20px;">👤 Ожидание игроков...</div>';
-            } else {
-                list.innerHTML = data.map(p => `
-                    <div class="player-row ${p.answered ? 'answered' : ''}">
-                        <span class="player-name">${p.name}</span>
-                        <span class="player-score">${p.score}</span>
-                    </div>
-                `).join('');
+            try {
+                const { data, error } = await supabase
+                    .from('players')
+                    .select('*')
+                    .eq('game_code', currentGameCode);
+                
+                if (error) return;
+                
+                document.getElementById('playerCount').innerText = data.length;
+                document.getElementById('answeredCount').innerText = data.filter(p => p.answered).length;
+                
+                const list = document.getElementById('playersList');
+                if (data.length === 0) {
+                    list.innerHTML = '<div style="text-align: center; padding: 20px;">👤 Ожидание игроков...</div>';
+                } else {
+                    list.innerHTML = data.map(p => `
+                        <div class="player-row ${p.answered ? 'answered' : ''}">
+                            <span class="player-name">${p.name}</span>
+                            <span class="player-score">${p.score}</span>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error('Error updating players:', e);
             }
         }
         
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
-        renderQuestions();
+        document.addEventListener('DOMContentLoaded', function() {
+            renderQuestions();
+        });
     </script>
 </body>
 </html>
