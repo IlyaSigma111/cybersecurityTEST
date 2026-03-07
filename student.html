@@ -289,7 +289,7 @@
     </div>
 
     <script>
-        // Используем ДРУГОЕ имя для Supabase клиента
+        // Используем то же имя, что и в teacher.html
         const SB = window.supabase.createClient(
             'https://gluqnmznmjvlyguzkdrn.supabase.co',
             'sb_publishable_OUdy33oOIQlOce88IXAP9w_G74CkWr_'
@@ -297,7 +297,7 @@
         
         console.log('🚀 Supabase инициализирован');
 
-        // ========== ВОПРОСЫ ==========
+        // ========== ВОПРОСЫ (только первые 15 для ученика, но можно все 30) ==========
         const QUESTIONS = [
             {
                 id: 1,
@@ -486,7 +486,6 @@
         let playerName = null;
         let currentQuestion = null;
         let hasAnswered = false;
-        let gameListener = null;
         let pollInterval = null;
         let playerScore = 0;
 
@@ -537,7 +536,7 @@
         }
 
         // Подключиться к игре
-        function joinGame() {
+        async function joinGame() {
             const name = playerNameInput.value.trim();
             const code = gameCodeInput.value.trim();
             
@@ -552,52 +551,65 @@
             }
             
             playerName = name;
-            currentGameId = "game_" + code;
             
             joinButton.disabled = true;
             joinButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ПОДКЛЮЧЕНИЕ...';
             
-            // Проверяем существование игры
-            SB.from('games').select('*').eq('code', code).then(snapshot => {
-                if (!snapshot.data || snapshot.data.length === 0) {
+            try {
+                // Проверяем существование игры
+                const { data: games, error: gameError } = await SB
+                    .from('games')
+                    .select('*')
+                    .eq('code', code);
+                
+                if (gameError) throw gameError;
+                
+                if (!games || games.length === 0) {
                     throw new Error(`Викторина с кодом ${code} не найдена`);
                 }
                 
-                const game = snapshot.data[0];
-                
                 // Проверяем, есть ли уже такой игрок
-                return SB.from('players').select('*').eq('game_code', code).eq('name', name).then(checkSnapshot => {
-                    if (checkSnapshot.data && checkSnapshot.data.length > 0) {
-                        throw new Error("Участник с таким именем уже есть");
-                    }
-                    
-                    // Регистрируем игрока
-                    return SB.from('players').insert({
+                const { data: existingPlayers, error: checkError } = await SB
+                    .from('players')
+                    .select('*')
+                    .eq('game_code', code)
+                    .eq('name', name);
+                
+                if (checkError) throw checkError;
+                
+                if (existingPlayers && existingPlayers.length > 0) {
+                    throw new Error("Участник с таким именем уже есть");
+                }
+                
+                // Регистрируем игрока
+                const { error: insertError } = await SB
+                    .from('players')
+                    .insert({
                         game_code: code,
                         name: name,
                         score: 0,
                         answered: false,
-                        joined_at: Date.now(),
-                        device: /Mobi|Android/i.test(navigator.userAgent) ? "📱 Телефон" : "💻 Компьютер"
+                        joined_at: Date.now()
                     });
-                });
-            }).then(() => {
-                console.log("✅ Подключен к игре:", currentGameId);
                 
+                if (insertError) throw insertError;
+                
+                console.log("✅ Подключен к игре:", code);
+                
+                currentGameId = code;
                 displayName.textContent = playerName;
                 displayCode.textContent = code;
                 
                 switchScreen('waiting');
                 startPolling();
                 
-                joinButton.disabled = false;
-                joinButton.innerHTML = '🔌 ПОДКЛЮЧИТЬСЯ';
-                
-            }).catch(error => {
+            } catch (error) {
+                console.error('Ошибка подключения:', error);
                 showError(error.message);
+            } finally {
                 joinButton.disabled = false;
                 joinButton.innerHTML = '🔌 ПОДКЛЮЧИТЬСЯ';
-            });
+            }
         }
 
         // Поллинг изменений в игре
@@ -606,27 +618,39 @@
             pollInterval = setInterval(checkGameStatus, 2000);
         }
 
-        function checkGameStatus() {
+        async function checkGameStatus() {
             if (!currentGameId || !playerName) return;
             
-            const code = currentGameId.replace('game_', '');
-            
-            // Получаем информацию об игре
-            SB.from('games').select('*').eq('code', code).then(snapshot => {
-                if (!snapshot.data || snapshot.data.length === 0) {
+            try {
+                // Получаем информацию о игре
+                const { data: games, error: gameError } = await SB
+                    .from('games')
+                    .select('*')
+                    .eq('code', currentGameId);
+                
+                if (gameError) throw gameError;
+                
+                if (!games || games.length === 0) {
                     console.log("Игра удалена");
                     leaveGame();
                     return;
                 }
                 
-                const game = snapshot.data[0];
+                const game = games[0];
                 
                 // Получаем информацию об игроке
-                SB.from('players').select('*').eq('game_code', code).eq('name', playerName).then(playerSnapshot => {
-                    if (playerSnapshot.data && playerSnapshot.data.length > 0) {
-                        displayScore.textContent = playerSnapshot.data[0].score || 0;
-                    }
-                });
+                const { data: players, error: playerError } = await SB
+                    .from('players')
+                    .select('*')
+                    .eq('game_code', currentGameId)
+                    .eq('name', playerName);
+                
+                if (playerError) throw playerError;
+                
+                if (players && players.length > 0) {
+                    playerScore = players[0].score || 0;
+                    displayScore.textContent = playerScore;
+                }
                 
                 // Если игра активна и есть текущий вопрос
                 if (game.status === "active" && game.current_question) {
@@ -642,7 +666,10 @@
                         switchScreen('question');
                     }
                 }
-            });
+                
+            } catch (e) {
+                console.error('Ошибка проверки статуса:', e);
+            }
         }
 
         // Показать вопрос
@@ -670,7 +697,7 @@
         }
 
         // Выбрать ответ
-        function selectAnswer(answerIndex) {
+        async function selectAnswer(answerIndex) {
             if (hasAnswered || !currentQuestion || !currentGameId || !playerName) {
                 return;
             }
@@ -687,33 +714,44 @@
             
             // Проверяем правильность
             const isCorrect = (answerIndex === currentQuestion.correct);
-            const code = currentGameId.replace('game_', '');
             
-            // Отправляем ответ
-            SB.from('answers').insert({
-                game_code: code,
-                question_id: currentQuestion.id,
-                player_name: playerName,
-                answer_index: answerIndex,
-                is_correct: isCorrect,
-                answered_at: Date.now()
-            }).then(() => {
+            try {
+                // Отправляем ответ
+                const { error: answerError } = await SB
+                    .from('answers')
+                    .insert({
+                        game_code: currentGameId,
+                        question_id: currentQuestion.id,
+                        player_name: playerName,
+                        answer_index: answerIndex,
+                        is_correct: isCorrect,
+                        answered_at: Date.now()
+                    });
+                
+                if (answerError) throw answerError;
+                
                 // Если ответ правильный, увеличиваем счёт
                 if (isCorrect) {
                     playerScore += currentQuestion.points || 1;
                     displayScore.textContent = playerScore;
                     
                     // Обновляем счёт игрока
-                    SB.from('players').update({ score: playerScore, answered: true })
-                        .eq('game_code', code)
-                        .eq('name', playerName)
-                        .then();
+                    const { error: updateError } = await SB
+                        .from('players')
+                        .update({ score: playerScore, answered: true })
+                        .eq('game_code', currentGameId)
+                        .eq('name', playerName);
+                    
+                    if (updateError) throw updateError;
                 } else {
                     // Отмечаем, что игрок ответил
-                    SB.from('players').update({ answered: true })
-                        .eq('game_code', code)
-                        .eq('name', playerName)
-                        .then();
+                    const { error: updateError } = await SB
+                        .from('players')
+                        .update({ answered: true })
+                        .eq('game_code', currentGameId)
+                        .eq('name', playerName);
+                    
+                    if (updateError) throw updateError;
                 }
                 
                 // Показываем статус
@@ -722,11 +760,11 @@
                 
                 console.log(`📊 Ответ: ${isCorrect ? '✅' : '❌'}`);
                 
-            }).catch(error => {
+            } catch (error) {
                 console.error("Ошибка отправки ответа:", error);
                 showError("Ошибка при отправке ответа");
                 hasAnswered = false; // Разрешить попробовать снова
-            });
+            }
         }
 
         // Выйти из игры
@@ -736,15 +774,11 @@
                 pollInterval = null;
             }
             
-            if (currentGameId && playerName) {
-                const code = currentGameId.replace('game_', '');
-                SB.from('players').delete().eq('game_code', code).eq('name', playerName).then();
-            }
-            
             currentGameId = null;
             playerName = null;
             currentQuestion = null;
             hasAnswered = false;
+            playerScore = 0;
             
             playerNameInput.value = '';
             gameCodeInput.value = '';
