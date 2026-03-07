@@ -2,8 +2,10 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Кибер Кахут</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>КИБЕР КАХУТ - Викторина по безопасности</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,95 +14,349 @@
         }
         
         body {
+            font-family: 'Share Tech Mono', monospace;
             background: #0a0a0a;
-            color: #0f0;
-            font-family: 'Courier New', monospace;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            color: white;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 255, 0, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 50%, rgba(255, 0, 255, 0.05) 0%, transparent 50%);
+            z-index: -1;
         }
         
         .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .home-header {
             text-align: center;
-            border: 3px solid #0f0;
-            border-radius: 30px;
-            padding: 50px;
-            background: #111;
-            box-shadow: 0 0 50px rgba(0, 255, 0, 0.3);
-            max-width: 600px;
-            width: 90%;
+            padding: 80px 30px;
+            margin-bottom: 60px;
+            position: relative;
+        }
+        
+        .logo {
+            font-size: 120px;
+            margin-bottom: 30px;
+            display: inline-block;
+            animation: float 6s ease-in-out infinite;
+            filter: drop-shadow(0 0 30px #0f0);
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 30px #0f0); }
+            50% { transform: translateY(-20px); filter: drop-shadow(0 0 50px #0f0); }
         }
         
         h1 {
-            font-size: 3.5rem;
-            margin-bottom: 30px;
-            text-shadow: 0 0 15px #0f0;
+            font-size: 4.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #0f0, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
         }
         
         .subtitle {
-            font-size: 1.2rem;
-            margin-bottom: 50px;
-            opacity: 0.8;
+            font-size: 1.4rem;
+            color: #0f0;
+            max-width: 800px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+            background: rgba(0, 255, 0, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 20px 30px;
+            border-radius: 20px;
+            border: 1px solid #0f0;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.2);
         }
         
-        .buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin: 70px 0;
+        }
+        
+        .stat-item {
+            background: rgba(0, 255, 0, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid #0f0;
+            border-radius: 24px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.4s;
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 0 50px rgba(0, 255, 0, 0.3);
+        }
+        
+        .stat-icon {
+            font-size: 60px;
+            margin-bottom: 25px;
+            color: #0f0;
+            filter: drop-shadow(0 0 20px #0f0);
+        }
+        
+        .stat-item h4 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #0f0;
+        }
+        
+        .role-selection {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
+            margin: 80px 0;
+        }
+        
+        .role-card {
+            background: rgba(0, 255, 0, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 60px 40px;
+            text-align: center;
+            border: 2px solid #0f0;
+            transition: all 0.5s;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.2);
+        }
+        
+        .role-card:hover {
+            transform: translateY(-15px);
+            box-shadow: 0 0 80px rgba(0, 255, 0, 0.4);
+        }
+        
+        .role-icon {
+            font-size: 90px;
+            margin-bottom: 35px;
+            color: #0f0;
+            filter: drop-shadow(0 0 30px #0f0);
+            animation: pulse 3s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .role-card h3 {
+            font-size: 2.2rem;
+            margin-bottom: 25px;
+            color: #0f0;
+            text-shadow: 0 0 20px #0f0;
         }
         
         .btn {
-            display: block;
-            padding: 20px;
-            background: #000;
-            color: #0f0;
-            border: 2px solid #0f0;
-            border-radius: 15px;
-            text-decoration: none;
-            font-size: 1.5rem;
-            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 22px 45px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
             transition: all 0.3s;
+            text-decoration: none;
+            width: 100%;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #0f0;
+            color: #0f0;
+            font-family: 'Share Tech Mono', monospace;
         }
         
         .btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 50px #0f0;
+            background: rgba(0, 255, 0, 0.2);
+        }
+        
+        .steps-container {
+            background: rgba(0, 255, 0, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 32px;
+            padding: 60px 50px;
+            margin: 80px 0;
+            border: 1px solid #0f0;
+            box-shadow: 0 0 50px rgba(0, 255, 0, 0.2);
+        }
+        
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 35px;
+            margin-top: 50px;
+        }
+        
+        .step {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 24px;
+            padding: 35px;
+            border-left: 4px solid #0f0;
+            transition: all 0.4s;
+        }
+        
+        .step:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 0 40px rgba(0, 255, 0, 0.3);
+        }
+        
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
             background: #0f0;
-            color: #000;
+            color: black;
+            border-radius: 50%;
+            font-weight: 900;
+            font-size: 1.8rem;
+            margin-bottom: 25px;
             box-shadow: 0 0 30px #0f0;
-            transform: scale(1.05);
         }
         
-        .btn.teacher {
-            border-color: #ff00ff;
+        .home-footer {
+            text-align: center;
+            padding: 60px 20px;
+            margin-top: 100px;
+            border-top: 1px solid #0f0;
+            color: #0f0;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(20px);
+            border-radius: 40px 40px 0 0;
+        }
+        
+        .tech-stack {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .tech-item {
+            background: rgba(0, 255, 0, 0.1);
+            padding: 12px 24px;
+            border-radius: 20px;
+            border: 1px solid #0f0;
+            color: #0f0;
+        }
+        
+        .moderator-link {
             color: #ff00ff;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            background: rgba(255, 0, 255, 0.1);
+            border: 1px solid #ff00ff;
+            margin-top: 20px;
         }
         
-        .btn.teacher:hover {
-            background: #ff00ff;
-            color: #000;
+        .moderator-link:hover {
+            background: rgba(255, 0, 255, 0.2);
             box-shadow: 0 0 30px #ff00ff;
         }
         
-        .footer {
-            margin-top: 50px;
-            font-size: 0.9rem;
-            opacity: 0.5;
+        @media (max-width: 1024px) {
+            h1 { font-size: 3.5rem; }
+            .role-selection { grid-template-columns: 1fr; }
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 2.8rem; }
+            .logo { font-size: 80px; }
+            .steps { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🛡️ КИБЕР КАХУТ</h1>
-        <p class="subtitle">Викторина по кибербезопасности в реальном времени</p>
-        
-        <div class="buttons">
-            <a href="teacher.html" class="btn teacher">👨‍🏫 УЧИТЕЛЬ (на доску)</a>
-            <a href="student.html" class="btn">🧑‍🎓 УЧЕНИК (на телефон)</a>
+        <header class="home-header">
+            <div class="logo">🛡️</div>
+            <h1>КИБЕР КАХУТ</h1>
+            <p class="subtitle">Интерактивная викторина по кибербезопасности. 30 вопросов разной сложности с системой автоматической проверки.</p>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-item"><div class="stat-icon">🔒</div><h4>30 вопросов</h4><p>Лёгкие, средние, сложные</p></div>
+            <div class="stat-item"><div class="stat-icon">✨</div><h4>Хакерский стиль</h4><p>Glassmorphism + неон</p></div>
+            <div class="stat-item"><div class="stat-icon">📱</div><h4>Адаптивный</h4><p>Телефоны, планшеты, ПК</p></div>
+            <div class="stat-item"><div class="stat-icon">👥</div><h4>Мультиплеер</h4><p>Неограниченно игроков</p></div>
         </div>
-        
-        <div class="footer">
-            ⚡ 15 вопросов • Realtime • Без регистрации
+
+        <div class="role-selection">
+            <div class="role-card">
+                <div class="role-icon">👨‍🏫</div>
+                <h3>ПРЕПОДАВАТЕЛЬ</h3>
+                <p style="margin-bottom: 35px; color: #0f0;">Запускайте викторину в классе, показывайте вопросы на экране, управляйте процессом.</p>
+                <a href="teacher.html" class="btn"><i class="fas fa-user-shield"></i> ПАНЕЛЬ УПРАВЛЕНИЯ</a>
+            </div>
+            <div class="role-card">
+                <div class="role-icon">🧑‍🎓</div>
+                <h3>УЧЕНИК</h3>
+                <p style="margin-bottom: 35px; color: #0f0;">Подключайтесь с телефона или компьютера, отвечайте на вопросы, соревнуйтесь.</p>
+                <a href="student.html" class="btn"><i class="fas fa-mobile-alt"></i> ПОДКЛЮЧИТЬСЯ</a>
+            </div>
         </div>
+
+        <div class="steps-container">
+            <h2 style="text-align: center; margin-bottom: 40px; color: #0f0; font-size: 2.5rem;">
+                <i class="fas fa-terminal"></i> КАК ЭТО РАБОТАЕТ
+            </h2>
+            <div class="steps">
+                <div class="step"><div class="step-number">1</div><p><strong style="color: #0f0;">Преподаватель</strong> создаёт игру и получает код</p></div>
+                <div class="step"><div class="step-number">2</div><p><strong style="color: #0f0;">Ученики</strong> подключаются по коду</p></div>
+                <div class="step"><div class="step-number">3</div><p><strong style="color: #0f0;">Вопросы</strong> показываются на экране</p></div>
+                <div class="step"><div class="step-number">4</div><p><strong style="color: #0f0;">Статистика</strong> в реальном времени</p></div>
+            </div>
+        </div>
+
+        <footer class="home-footer">
+            <p style="font-size: 1.2rem; margin-bottom: 20px;">Викторина по кибербезопасности: 30 вопросов</p>
+            <div class="tech-stack">
+                <span class="tech-item"><i class="fas fa-database"></i> Supabase</span>
+                <span class="tech-item"><i class="fab fa-html5"></i> HTML5</span>
+                <span class="tech-item"><i class="fab fa-js"></i> JavaScript</span>
+                <span class="tech-item"><i class="fas fa-shield-alt"></i> Glassmorphism</span>
+            </div>
+            <p style="margin-top: 30px;">© 2026 Кибер Кахут | <span id="moderatorSignature" class="moderator-link"><i class="fas fa-user-secret"></i> Панель модератора</span></p>
+        </footer>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("🚀 Кибер Кахут загружен");
+            document.getElementById('moderatorSignature').addEventListener('click', function() {
+                window.location.href = 'teacher.html';
+            });
+        });
+    </script>
 </body>
 </html>
