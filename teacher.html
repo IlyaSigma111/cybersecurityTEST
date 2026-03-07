@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Учитель - Кибер Кахут</title>
+    <title>Преподаватель - Кибер Кахут</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -13,76 +15,226 @@
         }
         
         body {
+            font-family: 'Share Tech Mono', monospace;
             background: #0a0a0a;
             color: #0f0;
-            font-family: 'Courier New', monospace;
-            padding: 20px;
+            min-height: 100vh;
+            overflow: hidden;
         }
         
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        #mainInterface {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
         }
         
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 2.5rem;
+        .teacher-header {
+            background: rgba(0, 255, 0, 0.05);
+            backdrop-filter: blur(20px);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #0f0;
+            flex-shrink: 0;
+        }
+        
+        .header-left h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #0f0;
             text-shadow: 0 0 10px #0f0;
         }
         
-        .panel {
-            background: #111;
-            border: 2px solid #0f0;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
+        .game-code-box {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #0f0;
+            border-radius: 12px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
         
-        button {
-            background: #0f0;
-            color: #000;
-            border: none;
-            padding: 12px 24px;
-            font-size: 1.1rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            margin: 5px;
-        }
-        
-        button:hover {
-            box-shadow: 0 0 20px #0f0;
-        }
-        
-        .code-box {
-            background: #000;
-            border: 2px solid #0f0;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
+        .code-display {
+            font-family: monospace;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #0f0;
+            letter-spacing: 2px;
+            min-width: 150px;
             text-align: center;
         }
         
-        .code {
-            font-size: 3rem;
-            font-weight: bold;
-            letter-spacing: 5px;
+        .glass-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            border: 2px solid #0f0;
+            border-radius: 10px;
+            cursor: pointer;
+            background: rgba(0,255,0,0.1);
+            color: #0f0;
+            font-family: 'Share Tech Mono', monospace;
+            text-decoration: none;
+            transition: all 0.3s;
         }
         
-        #playersList {
+        .glass-btn:hover {
+            background: rgba(0,255,0,0.2);
+            box-shadow: 0 0 20px #0f0;
+            transform: translateY(-2px);
+        }
+        
+        .glass-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .main-content {
+            display: flex;
+            flex: 1;
+            padding: 20px;
+            gap: 20px;
+            overflow: hidden;
+            min-height: 0;
+        }
+        
+        .left-column {
+            width: 35%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow: hidden;
+        }
+        
+        .right-column {
+            width: 65%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow: hidden;
+        }
+        
+        .glass-panel {
+            background: rgba(0, 255, 0, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid #0f0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .glass-panel h2 {
+            color: #0f0;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        
+        .control-buttons {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        
+        .control-buttons .glass-btn {
+            padding: 15px;
+            font-size: 1rem;
+            justify-content: flex-start;
+        }
+        
+        .info-block {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid #0f0;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .info-label {
+            color: rgba(0,255,0,0.7);
+        }
+        
+        .info-value {
+            color: #0f0;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        
+        .players-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 5px;
+            min-height: 0;
+        }
+        
+        .players-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
         }
         
         .player-card {
-            background: #000;
+            background: rgba(0, 0, 0, 0.5);
             border: 2px solid #0f0;
-            border-radius: 10px;
+            border-radius: 16px;
             padding: 15px;
             text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .player-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 20px rgba(0,255,0,0.3);
+        }
+        
+        .player-avatar {
+            width: 50px;
+            height: 50px;
+            background: #0f0;
+            color: black;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 900;
+        }
+        
+        .player-name {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            word-break: break-word;
+        }
+        
+        .player-score {
+            color: #0f0;
+            font-size: 0.9rem;
         }
         
         .player-card.answered {
@@ -90,116 +242,1007 @@
             box-shadow: 0 0 15px #ff00ff;
         }
         
-        .player-name {
-            font-size: 1.2rem;
-            font-weight: bold;
+        .questions-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 5px;
+            min-height: 0;
+        }
+        
+        .questions-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        
+        .question-item {
+            background: rgba(0,0,0,0.3);
+            border: 2px solid #0f0;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .question-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0,255,0,0.3);
+        }
+        
+        .question-item.active { 
+            border-color: #ff00ff; 
+            box-shadow: 0 0 20px #ff00ff;
+            background: rgba(255,0,255,0.1);
+        }
+        
+        .question-item.completed { 
+            border-color: #00ffff;
+            opacity: 0.7;
+        }
+        
+        .question-number {
+            font-size: 1.3rem;
             margin-bottom: 5px;
         }
         
-        .player-score {
-            font-size: 1.5rem;
-            color: #ff00ff;
+        .question-difficulty {
+            font-size: 0.7rem;
+            margin-bottom: 5px;
         }
         
-        .hidden {
+        .question-status {
+            font-size: 0.9rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: rgba(0,255,0,0.5);
+        }
+        
+        .empty-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+        
+        #presentationMode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #0a0a0a;
+            z-index: 1000;
             display: none;
+            flex-direction: column;
+        }
+        
+        #presentationMode.active { 
+            display: flex;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .presentation-header {
+            background: rgba(0,255,0,0.1);
+            backdrop-filter: blur(20px);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #0f0;
+        }
+        
+        .presentation-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .answers-stats {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .answer-stat-box {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid #0f0;
+            border-radius: 10px;
+            padding: 8px 15px;
+            text-align: center;
+            min-width: 90px;
+        }
+        
+        .answer-stat-box .label {
+            font-size: 0.7rem;
+            color: rgba(0,255,0,0.7);
+        }
+        
+        .answer-stat-box .value {
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: #0f0;
+        }
+        
+        .presentation-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            overflow-y: auto;
+        }
+        
+        .presentation-question {
+            max-width: 900px;
+            width: 100%;
+            background: rgba(0,0,0,0.7);
+            border: 2px solid #0f0;
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 0 80px rgba(0,255,0,0.3);
+        }
+        
+        .presentation-question h2 {
+            color: white;
+            font-size: 2.2rem;
+            text-align: center;
+            line-height: 1.4;
+            margin-bottom: 30px;
+        }
+        
+        .presentation-controls {
+            padding: 15px;
+            text-align: center;
+            border-top: 1px solid #0f0;
+        }
+        
+        .presentation-controls .glass-btn {
+            display: inline-flex;
+            width: auto;
+            padding: 12px 30px;
+            margin: 0 8px;
+        }
+        
+        .answer-block {
+            margin-top: 30px;
+            padding: 25px;
+            background: rgba(0,255,0,0.1);
+            border: 1px solid #0f0;
+            border-radius: 16px;
+            animation: slideUp 0.5s;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .correct-answer {
+            color: #0f0;
+            font-size: 1.8rem;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .explanation {
+            color: rgba(255,255,255,0.8);
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 255, 0, 0.05);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #0f0;
+            border-radius: 3px;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-content {
+                flex-direction: column;
+            }
+            .left-column, .right-column {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>👨‍🏫 ПАНЕЛЬ УЧИТЕЛЯ</h1>
-        
-        <div class="panel">
-            <button onclick="createGame()" id="createBtn">🎮 СОЗДАТЬ НОВУЮ ИГРУ</button>
-            
-            <div id="gameInfo" class="hidden">
-                <div class="code-box">
-                    <div style="font-size: 1rem; margin-bottom: 10px;">КОД ИГРЫ</div>
-                    <div class="code" id="gameCodeDisplay">----</div>
+    <div id="mainInterface">
+        <header class="teacher-header">
+            <div class="header-left">
+                <h1>👨‍🏫 ПАНЕЛЬ ПРЕПОДАВАТЕЛЯ</h1>
+            </div>
+            <div class="game-code-box">
+                <span>КОД:</span>
+                <div id="gameCode" class="code-display">----</div>
+                <a href="index.html" class="glass-btn">
+                    <i class="fas fa-home"></i> Главная
+                </a>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="left-column">
+                <div class="glass-panel">
+                    <h2><i class="fas fa-gamepad"></i> УПРАВЛЕНИЕ</h2>
+                    
+                    <div id="startSection">
+                        <button onclick="startNewGame()" class="glass-btn control-buttons">
+                            <i class="fas fa-plus-circle"></i> СОЗДАТЬ ВИКТОРИНУ
+                        </button>
+                    </div>
+
+                    <div id="gameControls" style="display: none;">
+                        <div class="control-buttons">
+                            <button onclick="startNextQuestion()" id="startQuestionBtn" class="glass-btn">
+                                <i class="fas fa-play"></i> ПОКАЗАТЬ ВОПРОС
+                            </button>
+                            <button onclick="showAnswer()" id="showAnswerBtn" class="glass-btn" disabled>
+                                <i class="fas fa-check-circle"></i> ПОКАЗАТЬ ОТВЕТ
+                            </button>
+                            <button onclick="nextQuestion()" id="nextQuestionBtn" class="glass-btn" disabled>
+                                <i class="fas fa-forward"></i> СЛЕДУЮЩИЙ ВОПРОС
+                            </button>
+                            <button onclick="resetGame()" class="glass-btn">
+                                <i class="fas fa-redo"></i> СБРОСИТЬ
+                            </button>
+                        </div>
+                        
+                        <div class="info-block">
+                            <div class="info-row">
+                                <span class="info-label">Текущий вопрос:</span>
+                                <span class="info-value" id="currentQ">0/30</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Игроков онлайн:</span>
+                                <span class="info-value" id="playerCount">0</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
-                <h2>ИГРОКИ:</h2>
-                <div id="playersList"></div>
+                <div class="glass-panel" style="flex: 1;">
+                    <h2><i class="fas fa-users"></i> УЧАСТНИКИ <span id="playersCount" style="color:#0f0; margin-left:auto;">0</span></h2>
+                    <div class="players-container" id="playersContainer">
+                        <div id="playersList" class="players-list">
+                            <div class="empty-state">
+                                <div class="empty-icon">👤</div>
+                                <p>Ожидание игроков...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-column">
+                <div class="glass-panel" style="flex: 1;">
+                    <h2><i class="fas fa-list-ol"></i> ВОПРОСЫ (30)</h2>
+                    <div class="questions-container">
+                        <div id="questionsList" class="questions-list">
+                            <div class="empty-state">
+                                <div class="empty-icon">📚</div>
+                                <p>Загрузка вопросов...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    <div id="presentationMode">
+        <div class="presentation-header">
+            <div class="presentation-info">
+                <span style="font-size: 1.1rem; color: #0f0;">🎯 РЕЖИМ ПРЕЗЕНТАЦИИ</span>
+                <span style="font-size: 1rem;">Вопрос <span id="presentationQNum">1</span>/30</span>
+            </div>
+            
+            <div class="answers-stats">
+                <div class="answer-stat-box">
+                    <div class="label">Ответили</div>
+                    <div class="value" id="answeredCount">0</div>
+                </div>
+                <div class="answer-stat-box">
+                    <div class="label">Правильно</div>
+                    <div class="value" id="correctCount">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="presentation-content">
+            <div id="presentationQuestion" class="presentation-question">
+                <h2>Вопрос появится здесь</h2>
+            </div>
+        </div>
+
+        <div class="presentation-controls">
+            <button onclick="exitPresentation()" class="glass-btn">
+                <i class="fas fa-times"></i> ВЕРНУТЬСЯ
+            </button>
+            <button onclick="showAnswer()" class="glass-btn">
+                <i class="fas fa-check-circle"></i> ПОКАЗАТЬ ОТВЕТ
+            </button>
+        </div>
+    </div>
+
     <script>
-        // Используем ДРУГОЕ имя вместо supabase
-        const sbClient = window.supabase.createClient(
+        // Используем ДРУГОЕ имя для Supabase клиента
+        const SB = window.supabase.createClient(
             'https://gluqnmznmjvlyguzkdrn.supabase.co',
             'sb_publishable_OUdy33oOIQlOce88IXAP9w_G74CkWr_'
         );
         
+        console.log('🚀 Supabase инициализирован');
+
+        // ========== ВОПРОСЫ ==========
+        const QUESTIONS = [
+            {
+                id: 1,
+                text: "Что такое фишинг?",
+                options: [
+                    "Вид рыбалки",
+                    "Метод кражи данных через поддельные сайты/письма",
+                    "Антивирусная программа",
+                    "Тип шифрования"
+                ],
+                correct: 1,
+                explanation: "Фишинг — вид интернет-мошенничества, целью которого является получение доступа к конфиденциальным данным пользователей.",
+                points: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 2,
+                text: "Какой пароль считается самым ненадежным?",
+                options: [
+                    "G7$k2!mN9",
+                    "Tr0ub4dor&3",
+                    "qwerty123",
+                    "P@ssw0rd!$"
+                ],
+                correct: 2,
+                explanation: "qwerty123 — словарный пароль, взламывается за секунды.",
+                points: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 3,
+                text: "Что такое 2FA?",
+                options: [
+                    "Второй аккаунт",
+                    "Двухфакторная аутентификация",
+                    "Файловая система",
+                    "Тип вируса"
+                ],
+                correct: 1,
+                explanation: "2FA (Two-Factor Authentication) — двухфакторная аутентификация, второй уровень защиты.",
+                points: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 4,
+                text: "Что такое VPN?",
+                options: [
+                    "Вирусная программа",
+                    "Виртуальная частная сеть",
+                    "Тип пароля",
+                    "Антивирус"
+                ],
+                correct: 1,
+                explanation: "VPN (Virtual Private Network) — виртуальная частная сеть, шифрует трафик и скрывает IP.",
+                points: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 5,
+                text: "Какой сайт помогает проверить, не взломали ли ваш email?",
+                options: [
+                    "google.com",
+                    "haveibeenpwned.com",
+                    "yandex.ru",
+                    "github.com"
+                ],
+                correct: 1,
+                explanation: "Have I Been Pwned проверяет, не было ли ваших данных в утечках.",
+                points: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 6,
+                text: "Что такое вредоносное ПО?",
+                options: [
+                    "Программа для учебы",
+                    "Вирусы, трояны, шпионы",
+                    "Антивирус",
+                    "Браузер"
+                ],
+                correct: 1,
+                explanation: "Вредоносное ПО (малварь) — программы, наносящие вред устройству.",
+                points: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 7,
+                text: "Что такое социальная инженерия?",
+                options: [
+                    "Инженерия в соцсетях",
+                    "Психологическое манипулирование людьми",
+                    "Строительство соцобъектов",
+                    "Тип шифрования"
+                ],
+                correct: 1,
+                explanation: "Социальная инженерия — метод взлома, основанный на психологии, а не на технологиях.",
+                points: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 8,
+                text: "Как часто нужно обновлять ПО?",
+                options: [
+                    "Раз в год",
+                    "Никогда",
+                    "Как только выходят обновления",
+                    "Только когда перестает работать"
+                ],
+                correct: 2,
+                explanation: "Обновления закрывают уязвимости, их нужно устанавливать сразу.",
+                points: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 9,
+                text: "Что такое публичный Wi-Fi?",
+                options: [
+                    "Домашняя сеть",
+                    "Открытая сеть в кафе, аэропортах",
+                    "Спутниковый интернет",
+                    "Проводной интернет"
+                ],
+                correct: 1,
+                explanation: "Публичный Wi-Fi — открытые сети, где можно перехватить трафик.",
+                points: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 10,
+                text: "Что такое антивирус?",
+                options: [
+                    "Программа для ускорения ПК",
+                    "Программа для защиты от вирусов",
+                    "Браузер",
+                    "Операционная система"
+                ],
+                correct: 1,
+                explanation: "Антивирус обнаруживает и удаляет вредоносное ПО.",
+                points: 1,
+                difficulty: "easy"
+            },
+            {
+                id: 11,
+                text: "Почему опасно использовать один и тот же пароль на разных сайтах?",
+                options: [
+                    "Его сложнее запомнить",
+                    "Если взломают один сайт, хакеры получат доступ ко всем вашим аккаунтам",
+                    "Сайты могут поссориться",
+                    "Это запрещено законом"
+                ],
+                correct: 1,
+                explanation: "Если вы используете один пароль везде, потеря одного аккаунта ведет к потере всех остальных.",
+                points: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 12,
+                text: "Что такое цифровой след?",
+                options: [
+                    "Отпечаток пальца для входа в телефон",
+                    "Вся информация, которую вы оставляете о себе в интернете",
+                    "След от мышки на коврике",
+                    "Программа для слежки"
+                ],
+                correct: 1,
+                explanation: "Лайки, комментарии, фото и поисковые запросы — всё это ваш цифровой след, который могут использовать мошенники.",
+                points: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 13,
+                text: "Что такое кибербуллинг?",
+                options: [
+                    "Взлом сайта",
+                    "Травля и оскорбления в интернете",
+                    "Вирус в компьютере",
+                    "Соревнования по киберспорту"
+                ],
+                correct: 1,
+                explanation: "Кибербуллинг — это агрессивное поведение по отношению к другим людям в сети (оскорбления, угрозы, троллинг).",
+                points: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 14,
+                text: "Что такое бэкап и зачем он нужен?",
+                options: [
+                    "Резервная копия данных, чтобы не потерять файлы",
+                    "Программа для ускорения игр",
+                    "Удаление вирусов",
+                    "Новый смартфон"
+                ],
+                correct: 0,
+                explanation: "Бэкап (backup) — это копия ваших фото и документов на случай, если компьютер сломается или будет взломан.",
+                points: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 15,
+                text: "Что такое публичный Wi-Fi и чем он опасен?",
+                options: [
+                    "Домашний интернет, он безопасен",
+                    "Бесплатный интернет в кафе и аэропортах, где могут украсть ваши данные",
+                    "Спутниковый интернет",
+                    "Проводной интернет от провайдера"
+                ],
+                correct: 1,
+                explanation: "В публичных сетях хакеры могут перехватить ваш трафик и украсть пароли.",
+                points: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 16,
+                text: "Как понять, что сайт безопасен для ввода платежных данных?",
+                options: [
+                    "У сайта красивый дизайн",
+                    "В адресной строке есть значок замка и https://",
+                    "Сайт быстро загружается",
+                    "На сайте нет рекламы"
+                ],
+                correct: 1,
+                explanation: "Значок замка и https означают, что соединение зашифровано.",
+                points: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 17,
+                text: "Что такое двухфакторная аутентификация (2FA)?",
+                options: [
+                    "Два разных пароля для входа",
+                    "Вход по отпечатку пальца и лицу",
+                    "Вход по паролю и коду из SMS или приложения",
+                    "Проверка аккаунта через друзей"
+                ],
+                correct: 2,
+                explanation: "2FA добавляет дополнительный уровень защиты: даже если пароль украдут, хакер не сможет войти без вашего телефона.",
+                points: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 18,
+                text: "Почему нельзя переходить по подозрительным ссылкам от друзей в соцсетях?",
+                options: [
+                    "Друг может обидеться",
+                    "Аккаунт друга могли взломать и рассылать вирусы",
+                    "Это занимает много времени",
+                    "Ссылка может не открыться"
+                ],
+                correct: 1,
+                explanation: "Если друг прислал странную ссылку, лучше уточнить у него лично — возможно, его аккаунт взломан.",
+                points: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 19,
+                text: "Что такое троян в компьютере?",
+                options: [
+                    "Игра про древнюю Грецию",
+                    "Вредоносная программа, которая маскируется под полезную",
+                    "Антивирус",
+                    "Драйвер для мышки"
+                ],
+                correct: 1,
+                explanation: "Троян притворяется безобидной программой, но на самом деле ворует данные.",
+                points: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 20,
+                text: "Что делать, если вы получили письмо от 'банка' с требованием срочно ввести пароль?",
+                options: [
+                    "Срочно ввести пароль, чтобы спасти деньги",
+                    "Переслать письмо друзьям",
+                    "Не переходить по ссылкам, а позвонить в банк по официальному номеру",
+                    "Написать гневный ответ"
+                ],
+                correct: 2,
+                explanation: "Настоящие банки никогда не запрашивают пароли по почте. Это фишинг.",
+                points: 2,
+                difficulty: "medium"
+            },
+            {
+                id: 21,
+                text: "Зачем нужно регулярно обновлять программы?",
+                options: [
+                    "Чтобы появлялись новые кнопки",
+                    "Чтобы разработчики получали деньги",
+                    "Чтобы закрыть уязвимости, через которые лезут вирусы",
+                    "Чтобы тратить интернет-трафик"
+                ],
+                correct: 2,
+                explanation: "Обновления содержат заплатки для дыр в безопасности.",
+                points: 3,
+                difficulty: "hard"
+            },
+            {
+                id: 22,
+                text: "Что такое программа-вымогатель?",
+                options: [
+                    "Программа, которая просит денег на благотворительность",
+                    "Вирус, который блокирует компьютер и требует выкуп",
+                    "Подписка на антивирус",
+                    "Приложение для перевода денег"
+                ],
+                correct: 1,
+                explanation: "Опасный вирус: шифрует файлы и требует деньги за расшифровку.",
+                points: 3,
+                difficulty: "hard"
+            },
+            {
+                id: 23,
+                text: "Что такое VPN простыми словами?",
+                options: [
+                    "Программа, которая чистит пыль из компьютера",
+                    "Приложение, которое меняет IP и шифрует трафик",
+                    "Тип браузера",
+                    "Социальная сеть"
+                ],
+                correct: 1,
+                explanation: "VPN создает зашифрованный туннель для ваших данных и скрывает местоположение.",
+                points: 3,
+                difficulty: "hard"
+            },
+            {
+                id: 24,
+                text: "Почему не стоит выкладывать фото паспорта в интернет?",
+                options: [
+                    "Это некрасиво выглядит",
+                    "Фото могут использовать мошенники для оформления кредитов",
+                    "Соцсети удаляют такие фото",
+                    "Друзья будут смеяться"
+                ],
+                correct: 1,
+                explanation: "Данные паспорта позволяют злоумышленникам украсть личность.",
+                points: 3,
+                difficulty: "hard"
+            },
+            {
+                id: 25,
+                text: "Что означает 'Соединение не защищено' в браузере?",
+                options: [
+                    "У вас сломался интернет",
+                    "Сайт использует устаревший дизайн",
+                    "Данные могут быть перехвачены",
+                    "На сайте мало посетителей"
+                ],
+                correct: 2,
+                explanation: "У сайта нет SSL-сертификата. Вводить пароли опасно.",
+                points: 3,
+                difficulty: "hard"
+            },
+            {
+                id: 26,
+                text: "Что такое сниффер?",
+                options: [
+                    "Программа для нюхания табака",
+                    "Программа, которая перехватывает данные в сети",
+                    "Сетевой фильтр",
+                    "Тип антивируса"
+                ],
+                correct: 1,
+                explanation: "Снифферы используют хакеры в публичных Wi-Fi для кражи паролей.",
+                points: 3,
+                difficulty: "hard"
+            },
+            {
+                id: 27,
+                text: "Почему важно смотреть разрешения приложений?",
+                options: [
+                    "Чтобы не заполнить память",
+                    "Фонарик не должен иметь доступ к контактам",
+                    "Это ускоряет телефон",
+                    "Чтобы не было рекламы"
+                ],
+                correct: 1,
+                explanation: "Если калькулятор просит доступ к камере — он ворует данные.",
+                points: 3,
+                difficulty: "hard"
+            },
+            {
+                id: 28,
+                text: "Что такое ботнет?",
+                options: [
+                    "Сеть зараженных компьютеров под контролем хакера",
+                    "Робот-пылесос",
+                    "Социальная сеть",
+                    "Новый браузер"
+                ],
+                correct: 0,
+                explanation: "Хакеры используют зараженные компьютеры для атак.",
+                points: 3,
+                difficulty: "hard"
+            },
+            {
+                id: 29,
+                text: "Что такое Honeypot?",
+                options: [
+                    "Сервер-приманка для изучения хакеров",
+                    "Антивирус",
+                    "Сложный пароль",
+                    "Сейф для денег"
+                ],
+                correct: 0,
+                explanation: "Специально созданная цель, чтобы поймать хакера.",
+                points: 3,
+                difficulty: "hard"
+            },
+            {
+                id: 30,
+                text: "Главное правило безопасности в интернете:",
+                options: [
+                    "У меня секретов нет",
+                    "Критическое мышление — проверяй информацию",
+                    "Самый длинный пароль",
+                    "Антивирус защитит от всего"
+                ],
+                correct: 1,
+                explanation: "Самая лучшая защита — ваша внимательность.",
+                points: 3,
+                difficulty: "hard"
+            }
+        ];
+
+        let currentGameId = null;
         let currentGameCode = null;
-        let playersInterval = null;
-        
-        window.createGame = async function() {
+        let currentQuestionIndex = 0;
+        let subscription = null;
+        let pollInterval = null;
+
+        // Загрузка вопросов при старте
+        console.log('📚 Загружено вопросов:', QUESTIONS.length);
+
+        // ========== UI ЭЛЕМЕНТЫ ==========
+        const startSection = document.getElementById('startSection');
+        const gameControls = document.getElementById('gameControls');
+        const gameCodeDisplay = document.getElementById('gameCode');
+        const playersList = document.getElementById('playersList');
+        const playersContainer = document.getElementById('playersContainer');
+        const playerCount = document.getElementById('playerCount');
+        const playersCount = document.getElementById('playersCount');
+        const questionsList = document.getElementById('questionsList');
+        const currentQ = document.getElementById('currentQ');
+        const presentationMode = document.getElementById('presentationMode');
+        const presentationQNum = document.getElementById('presentationQNum');
+        const presentationQuestion = document.getElementById('presentationQuestion');
+        const answeredCount = document.getElementById('answeredCount');
+        const correctCount = document.getElementById('correctCount');
+        const startQuestionBtn = document.getElementById('startQuestionBtn');
+        const showAnswerBtn = document.getElementById('showAnswerBtn');
+        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+
+        // ========== ОТРИСОВКА ВОПРОСОВ ==========
+        function renderQuestions() {
+            if (!questionsList) return;
+            
+            questionsList.innerHTML = QUESTIONS.map((q, i) => {
+                let cls = 'question-item';
+                if (i === currentQuestionIndex) cls += ' active';
+                else if (i < currentQuestionIndex) cls += ' completed';
+                
+                let difficultyColor = q.difficulty === 'easy' ? '#0f0' : q.difficulty === 'medium' ? 'yellow' : 'red';
+                let difficultyText = q.difficulty === 'easy' ? 'ЛЁГКИЙ' : q.difficulty === 'medium' ? 'СРЕДНИЙ' : 'СЛОЖНЫЙ';
+                
+                return `
+                    <div class="${cls}" onclick="jumpToQuestion(${i})">
+                        <div class="question-number">${i + 1}</div>
+                        <div class="question-difficulty" style="color: ${difficultyColor};">${difficultyText}</div>
+                        <div class="question-status">
+                            ${i === currentQuestionIndex ? '🔴' : i < currentQuestionIndex ? '✅' : '⏳'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            const progressEl = document.getElementById('questionProgress');
+            if (progressEl) {
+                progressEl.innerText = (currentQuestionIndex + 1) + '/' + QUESTIONS.length;
+            }
+        }
+
+        // ========== ВЫБОР ВОПРОСА ==========
+        window.selectQuestion = function(index) {
+            currentQuestionIndex = index;
+            renderQuestions();
+            
+            const q = QUESTIONS[index];
+            document.getElementById('currentQuestionText').innerText = q.text;
+            
+            const optionsHtml = q.options.map((opt, i) => 
+                `<div class="option">${opt}</div>`
+            ).join('');
+            document.getElementById('optionsContainer').innerHTML = optionsHtml;
+            
+            document.getElementById('showAnswerBtn').disabled = false;
+            document.getElementById('nextBtn').disabled = true;
+        };
+
+        // ========== ПОКАЗАТЬ ОТВЕТ ==========
+        window.showAnswer = function() {
+            if (currentQuestionIndex < 0) return;
+            
+            const q = QUESTIONS[currentQuestionIndex];
+            const options = document.querySelectorAll('.option');
+            
+            options.forEach((opt, i) => {
+                if (i === q.correct) {
+                    opt.classList.add('correct');
+                }
+            });
+            
+            document.getElementById('showAnswerBtn').disabled = true;
+            document.getElementById('nextBtn').disabled = false;
+        };
+
+        // ========== СЛЕДУЮЩИЙ ВОПРОС ==========
+        window.nextQuestion = function() {
+            if (currentQuestionIndex + 1 < QUESTIONS.length) {
+                selectQuestion(currentQuestionIndex + 1);
+            } else {
+                alert('🎉 Викторина окончена!');
+            }
+        };
+
+        // ========== СОЗДАТЬ ИГРУ ==========
+        window.startNewGame = async function() {
             try {
-                // Создаём игру
                 const code = Math.floor(10000000 + Math.random() * 90000000).toString();
                 
-                const { error } = await sbClient
+                const { error } = await SB
                     .from('games')
                     .insert({ 
                         code: code, 
-                        created_at: Date.now(),
+                        created_at: Date.now(), 
                         status: 'waiting'
                     });
                 
-                if (error) throw error;
+                if (error) {
+                    console.error('Ошибка создания игры:', error);
+                    alert('Ошибка создания игры: ' + error.message);
+                    return;
+                }
                 
                 currentGameCode = code;
+                currentGameId = 'game_' + code;
+                currentQuestionIndex = 0;
                 
-                document.getElementById('createBtn').style.display = 'none';
-                document.getElementById('gameInfo').classList.remove('hidden');
-                document.getElementById('gameCodeDisplay').textContent = code;
+                startSection.style.display = 'none';
+                gameControls.style.display = 'block';
+                gameCodeDisplay.innerText = code;
+                currentQ.innerText = '0/' + QUESTIONS.length;
                 
-                // Запускаем обновление списка игроков
-                if (playersInterval) clearInterval(playersInterval);
-                updatePlayers();
-                playersInterval = setInterval(updatePlayers, 2000);
+                renderQuestions();
+                startPollingPlayers();
+                
+                alert(`✅ Викторина создана!\nКод: ${code}`);
                 
             } catch (e) {
+                console.error('Ошибка:', e);
                 alert('Ошибка: ' + e.message);
             }
         };
-        
-        async function updatePlayers() {
+
+        // ========== ПОЛЛИНГ ИГРОКОВ ==========
+        function startPollingPlayers() {
+            if (pollInterval) clearInterval(pollInterval);
+            pollInterval = setInterval(updatePlayersList, 2000);
+        }
+
+        async function updatePlayersList() {
             if (!currentGameCode) return;
             
             try {
-                const { data, error } = await sbClient
+                const { data, error } = await SB
                     .from('players')
                     .select('*')
                     .eq('game_code', currentGameCode);
                 
                 if (error) throw error;
                 
-                const list = document.getElementById('playersList');
+                const count = data ? data.length : 0;
+                playerCount.innerText = count;
+                playersCount.innerText = count;
                 
+                const list = document.getElementById('playersList');
                 if (!data || data.length === 0) {
-                    list.innerHTML = '<div class="player-card">👤 Ожидание игроков...</div>';
-                } else {
-                    list.innerHTML = data.map(p => `
-                        <div class="player-card ${p.answered ? 'answered' : ''}">
-                            <div class="player-name">${p.name}</div>
-                            <div class="player-score">${p.score || 0}</div>
-                            ${p.answered ? '<div style="color:#ff00ff;">✅</div>' : ''}
-                        </div>
-                    `).join('');
+                    list.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>Ожидание игроков...</p></div>';
+                    return;
                 }
                 
+                list.innerHTML = data.map(p => `
+                    <div class="player-card ${p.answered ? 'answered' : ''}">
+                        <div class="player-avatar">${p.name ? p.name.charAt(0).toUpperCase() : '?'}</div>
+                        <div class="player-name">${p.name || 'Без имени'}</div>
+                        <div class="player-score">🎯 ${p.score || 0}</div>
+                        ${p.answered ? '<div style="color: #ff00ff; font-size: 0.8rem;">✅ ответил</div>' : ''}
+                    </div>
+                `).join('');
+                
             } catch (e) {
-                console.error('Ошибка обновления:', e);
+                console.error('Ошибка обновления игроков:', e);
             }
         }
-        
-        // Очищаем интервал при выходе
-        window.onbeforeunload = function() {
-            if (playersInterval) clearInterval(playersInterval);
+
+        // ========== СБРОС ИГРЫ ==========
+        window.resetGame = function() {
+            if (confirm("Сбросить викторину и начать заново?")) {
+                if (pollInterval) clearInterval(pollInterval);
+                currentGameCode = null;
+                currentQuestionIndex = 0;
+                
+                startSection.style.display = 'block';
+                gameControls.style.display = 'none';
+                gameCodeDisplay.innerText = '----';
+                playerCount.innerText = '0';
+                playersCount.innerText = '0';
+                currentQ.innerText = '0/30';
+                
+                document.getElementById('playersList').innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>Ожидание игроков...</p></div>';
+                renderQuestions();
+                exitPresentation();
+            }
         };
+
+        // ========== ПРЕЗЕНТАЦИЯ ==========
+        window.startNextQuestion = function() {
+            if (currentQuestionIndex >= QUESTIONS.length) {
+                alert('🎉 Все вопросы пройдены!');
+                return;
+            }
+            
+            const q = QUESTIONS[currentQuestionIndex];
+            document.getElementById('presentationQuestion').innerHTML = `<h2>${q.text}</h2>`;
+            document.getElementById('presentationMode').classList.add('active');
+            document.getElementById('presentationQNum').innerText = (currentQuestionIndex + 1) + '/30';
+            
+            document.getElementById('showAnswerBtn').disabled = false;
+            document.getElementById('nextBtn').disabled = true;
+        };
+
+        window.exitPresentation = function() {
+            document.getElementById('presentationMode').classList.remove('active');
+        };
+
+        window.jumpToQuestion = function(index) {
+            if (!currentGameCode) {
+                alert("Сначала создайте викторину!");
+                return;
+            }
+            currentQuestionIndex = index;
+            renderQuestions();
+        };
+
+        // ========== ИНИЦИАЛИЗАЦИЯ ==========
+        renderQuestions();
     </script>
 </body>
 </html>
