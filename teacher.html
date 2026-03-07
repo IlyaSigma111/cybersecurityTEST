@@ -1012,21 +1012,15 @@
             }
         ];
 
-        let currentGameId = null;
         let currentGameCode = null;
         let currentQuestionIndex = 0;
-        let subscription = null;
         let pollInterval = null;
-
-        // Загрузка вопросов при старте
-        console.log('📚 Загружено вопросов:', QUESTIONS.length);
 
         // ========== UI ЭЛЕМЕНТЫ ==========
         const startSection = document.getElementById('startSection');
         const gameControls = document.getElementById('gameControls');
         const gameCodeDisplay = document.getElementById('gameCode');
         const playersList = document.getElementById('playersList');
-        const playersContainer = document.getElementById('playersContainer');
         const playerCount = document.getElementById('playerCount');
         const playersCount = document.getElementById('playersCount');
         const questionsList = document.getElementById('questionsList');
@@ -1034,8 +1028,6 @@
         const presentationMode = document.getElementById('presentationMode');
         const presentationQNum = document.getElementById('presentationQNum');
         const presentationQuestion = document.getElementById('presentationQuestion');
-        const answeredCount = document.getElementById('answeredCount');
-        const correctCount = document.getElementById('correctCount');
         const startQuestionBtn = document.getElementById('startQuestionBtn');
         const showAnswerBtn = document.getElementById('showAnswerBtn');
         const nextQuestionBtn = document.getElementById('nextQuestionBtn');
@@ -1062,11 +1054,6 @@
                     </div>
                 `;
             }).join('');
-            
-            const progressEl = document.getElementById('questionProgress');
-            if (progressEl) {
-                progressEl.innerText = (currentQuestionIndex + 1) + '/' + QUESTIONS.length;
-            }
         }
 
         // ========== ВЫБОР ВОПРОСА ==========
@@ -1077,7 +1064,7 @@
             const q = QUESTIONS[index];
             document.getElementById('currentQuestionText').innerText = q.text;
             
-            const optionsHtml = q.options.map((opt, i) => 
+            const optionsHtml = q.options.map(opt => 
                 `<div class="option">${opt}</div>`
             ).join('');
             document.getElementById('optionsContainer').innerHTML = optionsHtml;
@@ -1132,7 +1119,6 @@
                 }
                 
                 currentGameCode = code;
-                currentGameId = 'game_' + code;
                 currentQuestionIndex = 0;
                 
                 startSection.style.display = 'none';
@@ -1141,7 +1127,11 @@
                 currentQ.innerText = '0/' + QUESTIONS.length;
                 
                 renderQuestions();
-                startPollingPlayers();
+                
+                // Запускаем обновление списка игроков
+                if (pollInterval) clearInterval(pollInterval);
+                updatePlayersList();
+                pollInterval = setInterval(updatePlayersList, 2000);
                 
                 alert(`✅ Викторина создана!\nКод: ${code}`);
                 
@@ -1151,66 +1141,59 @@
             }
         };
 
-        // ========== ПОЛЛИНГ ИГРОКОВ ==========
-        function startPollingPlayers() {
-            if (pollInterval) clearInterval(pollInterval);
-            pollInterval = setInterval(updatePlayersList, 2000);
-        }
-
+        // ========== ОБНОВЛЕНИЕ СПИСКА ИГРОКОВ ==========
         async function updatePlayersList() {
-            if (!currentGameCode) return;
+            const gameCode = document.getElementById('gameCode').innerText;
+            
+            if (!gameCode || gameCode === '----') {
+                console.log('Нет кода игры');
+                return;
+            }
+            
+            console.log('Запрашиваем игроков для кода:', gameCode);
             
             try {
                 const { data, error } = await SB
                     .from('players')
                     .select('*')
-                    .eq('game_code', currentGameCode);
+                    .eq('game_code', gameCode);
                 
                 if (error) throw error;
+                
+                console.log('Получены игроки:', data);
                 
                 const count = data ? data.length : 0;
                 playerCount.innerText = count;
                 playersCount.innerText = count;
                 
                 const list = document.getElementById('playersList');
+                
                 if (!data || data.length === 0) {
                     list.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>Ожидание игроков...</p></div>';
                     return;
                 }
                 
-                list.innerHTML = data.map(p => `
-                    <div class="player-card ${p.answered ? 'answered' : ''}">
+                // Очищаем и создаём заново
+                list.innerHTML = '';
+                
+                data.forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = 'player-card' + (p.answered ? ' answered' : '');
+                    card.innerHTML = `
                         <div class="player-avatar">${p.name ? p.name.charAt(0).toUpperCase() : '?'}</div>
                         <div class="player-name">${p.name || 'Без имени'}</div>
                         <div class="player-score">🎯 ${p.score || 0}</div>
                         ${p.answered ? '<div style="color: #ff00ff; font-size: 0.8rem;">✅ ответил</div>' : ''}
-                    </div>
-                `).join('');
+                    `;
+                    list.appendChild(card);
+                });
+                
+                console.log('Список обновлён, элементов:', data.length);
                 
             } catch (e) {
                 console.error('Ошибка обновления игроков:', e);
             }
         }
-
-        // ========== СБРОС ИГРЫ ==========
-        window.resetGame = function() {
-            if (confirm("Сбросить викторину и начать заново?")) {
-                if (pollInterval) clearInterval(pollInterval);
-                currentGameCode = null;
-                currentQuestionIndex = 0;
-                
-                startSection.style.display = 'block';
-                gameControls.style.display = 'none';
-                gameCodeDisplay.innerText = '----';
-                playerCount.innerText = '0';
-                playersCount.innerText = '0';
-                currentQ.innerText = '0/30';
-                
-                document.getElementById('playersList').innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>Ожидание игроков...</p></div>';
-                renderQuestions();
-                exitPresentation();
-            }
-        };
 
         // ========== ПРЕЗЕНТАЦИЯ ==========
         window.startNextQuestion = function() {
@@ -1239,6 +1222,25 @@
             }
             currentQuestionIndex = index;
             renderQuestions();
+        };
+
+        window.resetGame = function() {
+            if (confirm("Сбросить викторину и начать заново?")) {
+                if (pollInterval) clearInterval(pollInterval);
+                currentGameCode = null;
+                currentQuestionIndex = 0;
+                
+                startSection.style.display = 'block';
+                gameControls.style.display = 'none';
+                gameCodeDisplay.innerText = '----';
+                playerCount.innerText = '0';
+                playersCount.innerText = '0';
+                currentQ.innerText = '0/30';
+                
+                document.getElementById('playersList').innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>Ожидание игроков...</p></div>';
+                renderQuestions();
+                exitPresentation();
+            }
         };
 
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
