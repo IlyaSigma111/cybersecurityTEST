@@ -581,7 +581,7 @@
     </div>
 
     <script>
-        // ========== ВОПРОСЫ ==========
+        // ========== ВОПРОСЫ (5 для теста) ==========
         const QUESTIONS = [
             {
                 id: 1,
@@ -593,7 +593,7 @@
                     "Тип шифрования"
                 ],
                 correct: 1,
-                explanation: "Фишинг — вид интернет-мошенничества, целью которого является получение доступа к конфиденциальным данным пользователей.",
+                explanation: "Фишинг — вид интернет-мошенничества.",
                 points: 1,
                 difficulty: "easy"
             },
@@ -607,7 +607,7 @@
                     "P@ssw0rd!$"
                 ],
                 correct: 2,
-                explanation: "qwerty123 — словарный пароль, взламывается за секунды.",
+                explanation: "qwerty123 — словарный пароль.",
                 points: 1,
                 difficulty: "easy"
             },
@@ -621,7 +621,7 @@
                     "Тип вируса"
                 ],
                 correct: 1,
-                explanation: "2FA (Two-Factor Authentication) — двухфакторная аутентификация, второй уровень защиты.",
+                explanation: "2FA — двухфакторная аутентификация.",
                 points: 1,
                 difficulty: "easy"
             },
@@ -635,13 +635,13 @@
                     "Антивирус"
                 ],
                 correct: 1,
-                explanation: "VPN (Virtual Private Network) — виртуальная частная сеть, шифрует трафик и скрывает IP.",
+                explanation: "VPN — виртуальная частная сеть.",
                 points: 1,
                 difficulty: "easy"
             },
             {
                 id: 5,
-                text: "Какой сайт помогает проверить, не взломали ли ваш email?",
+                text: "Какой сайт помогает проверить утечки данных?",
                 options: [
                     "google.com",
                     "haveibeenpwned.com",
@@ -649,7 +649,7 @@
                     "github.com"
                 ],
                 correct: 1,
-                explanation: "Have I Been Pwned проверяет, не было ли ваших данных в утечках.",
+                explanation: "Have I Been Pwned проверяет утечки.",
                 points: 1,
                 difficulty: "easy"
             }
@@ -699,7 +699,9 @@
                 `;
             }).join('');
             
-            currentQ.innerText = currentQuestionIndex + '/' + QUESTIONS.length;
+            if (currentQ) {
+                currentQ.innerText = currentQuestionIndex + '/' + QUESTIONS.length;
+            }
         }
 
         // ========== ВЫБОР ВОПРОСА ==========
@@ -708,9 +710,14 @@
             renderQuestions();
             
             const q = QUESTIONS[index];
-            const questionText = document.getElementById('currentQuestionText');
-            if (questionText) questionText.innerText = q.text;
             
+            // Обновляем текст вопроса в презентации
+            const questionText = document.getElementById('currentQuestionText');
+            if (questionText) {
+                questionText.innerText = q.text;
+            }
+            
+            // Обновляем варианты ответов
             const optionsContainer = document.getElementById('optionsContainer');
             if (optionsContainer) {
                 optionsContainer.innerHTML = q.options.map(opt => 
@@ -718,8 +725,9 @@
                 ).join('');
             }
             
-            document.getElementById('showAnswerBtn').disabled = false;
-            document.getElementById('nextBtn').disabled = true;
+            // Управляем кнопками
+            if (showAnswerBtn) showAnswerBtn.disabled = false;
+            if (nextQuestionBtn) nextQuestionBtn.disabled = true;
         };
 
         // ========== ПОКАЗАТЬ ОТВЕТ ==========
@@ -735,8 +743,8 @@
                 }
             });
             
-            document.getElementById('showAnswerBtn').disabled = true;
-            document.getElementById('nextBtn').disabled = false;
+            if (showAnswerBtn) showAnswerBtn.disabled = true;
+            if (nextQuestionBtn) nextQuestionBtn.disabled = false;
         };
 
         // ========== СЛЕДУЮЩИЙ ВОПРОС ==========
@@ -766,10 +774,10 @@
                 currentGameCode = code;
                 currentQuestionIndex = 0;
                 
-                startSection.style.display = 'none';
-                gameControls.style.display = 'block';
-                gameCodeDisplay.innerText = code;
-                currentQ.innerText = '0/' + QUESTIONS.length;
+                if (startSection) startSection.style.display = 'none';
+                if (gameControls) gameControls.style.display = 'block';
+                if (gameCodeDisplay) gameCodeDisplay.innerText = code;
+                if (currentQ) currentQ.innerText = '0/' + QUESTIONS.length;
                 
                 renderQuestions();
                 selectQuestion(0);
@@ -798,16 +806,17 @@
                 
                 if (error) throw error;
                 
-                playerCount.innerText = data.length;
-                playersCount.innerText = data.length;
+                if (playerCount) playerCount.innerText = data.length;
+                if (playersCount) playersCount.innerText = data.length;
                 
-                const list = document.getElementById('playersList');
+                if (!playersList) return;
+                
                 if (!data || data.length === 0) {
-                    list.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>Ожидание игроков...</p></div>';
+                    playersList.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>Ожидание игроков...</p></div>';
                     return;
                 }
                 
-                list.innerHTML = data.map(p => `
+                playersList.innerHTML = data.map(p => `
                     <div class="player-card ${p.answered ? 'answered' : ''}">
                         <div class="player-avatar">${p.name ? p.name.charAt(0).toUpperCase() : '?'}</div>
                         <div class="player-name">${p.name || 'Без имени'}</div>
@@ -829,16 +838,24 @@
             }
             
             const q = QUESTIONS[currentQuestionIndex];
-            presentationQuestion.innerHTML = `<h2>${q.text}</h2>`;
-            presentationMode.classList.add('active');
-            presentationQNum.innerText = (currentQuestionIndex + 1) + '/' + QUESTIONS.length;
+            if (presentationQuestion) {
+                presentationQuestion.innerHTML = `<h2>${q.text}</h2>`;
+            }
+            if (presentationMode) {
+                presentationMode.classList.add('active');
+            }
+            if (presentationQNum) {
+                presentationQNum.innerText = (currentQuestionIndex + 1) + '/' + QUESTIONS.length;
+            }
             
-            showAnswerBtn.disabled = false;
-            nextQuestionBtn.disabled = true;
+            if (showAnswerBtn) showAnswerBtn.disabled = false;
+            if (nextQuestionBtn) nextQuestionBtn.disabled = true;
         };
 
         window.exitPresentation = function() {
-            presentationMode.classList.remove('active');
+            if (presentationMode) {
+                presentationMode.classList.remove('active');
+            }
         };
 
         window.jumpToQuestion = function(index) {
@@ -855,14 +872,16 @@
                 currentGameCode = null;
                 currentQuestionIndex = 0;
                 
-                startSection.style.display = 'block';
-                gameControls.style.display = 'none';
-                gameCodeDisplay.innerText = '----';
-                playerCount.innerText = '0';
-                playersCount.innerText = '0';
-                currentQ.innerText = '0/' + QUESTIONS.length;
+                if (startSection) startSection.style.display = 'block';
+                if (gameControls) gameControls.style.display = 'none';
+                if (gameCodeDisplay) gameCodeDisplay.innerText = '----';
+                if (playerCount) playerCount.innerText = '0';
+                if (playersCount) playersCount.innerText = '0';
+                if (currentQ) currentQ.innerText = '0/' + QUESTIONS.length;
                 
-                document.getElementById('playersList').innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>Ожидание игроков...</p></div>';
+                if (playersList) {
+                    playersList.innerHTML = '<div class="empty-state"><div class="empty-icon">👤</div><p>Ожидание игроков...</p></div>';
+                }
                 renderQuestions();
                 exitPresentation();
             }
