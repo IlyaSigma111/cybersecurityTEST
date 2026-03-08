@@ -2,10 +2,10 @@
 // КОНФИГУРАЦИЯ SUPABASE
 // ========================================
 
-const SUPABASE_URL = 'https://gluqnmznmjvlyguzkdrn.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_OUdy33oOIQlOce88IXAP9w_G74CkWr_';
+const APP_SUPABASE_URL = 'https://gluqnmznmjvlyguzkdrn.supabase.co';
+const APP_SUPABASE_KEY = 'sb_publishable_OUdy33oOIQlOce88IXAP9w_G74CkWr_';
 
-// Создаём клиент с уникальным именем
-const SUPABASE_CLIENT = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// СОЗДАЁМ КЛИЕНТ С УНИКАЛЬНЫМ ИМЕНЕМ
+const APP_SUPABASE = window.supabase.createClient(APP_SUPABASE_URL, APP_SUPABASE_KEY);
 
-console.log('✅ Supabase клиент создан');
+console.log('✅ APP_SUPABASE инициализирован');
