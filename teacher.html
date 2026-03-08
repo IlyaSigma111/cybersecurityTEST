@@ -100,6 +100,11 @@
             transform: translateY(-2px);
         }
         
+        .glass-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
         .main-content {
             display: flex;
             flex: 1;
@@ -204,7 +209,7 @@
         
         .questions-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            grid-template-columns: repeat(5, 1fr);
             gap: 10px;
         }
         
@@ -212,19 +217,35 @@
             background: rgba(0,0,0,0.3);
             border: 2px solid #0f0;
             border-radius: 12px;
-            padding: 12px;
+            padding: 15px 5px;
             text-align: center;
             cursor: pointer;
+            position: relative;
+        }
+        
+        .question-item:hover {
+            border-color: #ff00ff;
+            box-shadow: 0 0 15px #ff00ff;
         }
         
         .question-item.active {
             border-color: #ff00ff;
-            box-shadow: 0 0 20px #ff00ff;
+            background: rgba(255,0,255,0.1);
         }
         
         .question-number {
             font-size: 1.3rem;
+            font-weight: bold;
             margin-bottom: 5px;
+        }
+        
+        .question-difficulty {
+            font-size: 0.7rem;
+            margin-bottom: 5px;
+        }
+        
+        .question-status {
+            font-size: 1.2rem;
         }
         
         .empty-state {
@@ -234,6 +255,70 @@
         }
         
         .hidden { display: none; }
+        
+        #presentationMode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #0a0a0a;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+        }
+        
+        #presentationMode.active {
+            display: flex;
+        }
+        
+        .presentation-header {
+            background: rgba(0,255,0,0.1);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #0f0;
+        }
+        
+        .presentation-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+        
+        .presentation-question {
+            max-width: 800px;
+            background: rgba(0,0,0,0.7);
+            border: 2px solid #0f0;
+            border-radius: 30px;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .presentation-question h2 {
+            font-size: 2rem;
+            margin-bottom: 30px;
+        }
+        
+        .presentation-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .presentation-option {
+            border: 2px solid #0f0;
+            border-radius: 15px;
+            padding: 20px;
+        }
+        
+        .presentation-option.correct {
+            border-color: #ff00ff;
+            box-shadow: 0 0 20px #ff00ff;
+        }
     </style>
 </head>
 <body>
@@ -245,6 +330,9 @@
             <div class="game-code-box">
                 <span>КОД:</span>
                 <div id="gameCode" class="code-display">----</div>
+                <a href="index.html" class="glass-btn">
+                    <i class="fas fa-home"></i> Главная
+                </a>
             </div>
         </header>
 
@@ -261,8 +349,14 @@
 
                     <div id="gameControls" class="hidden">
                         <div class="control-buttons">
-                            <button onclick="activateGame()" id="activateBtn" class="glass-btn">
-                                <i class="fas fa-play"></i> НАЧАТЬ ИГРУ
+                            <button onclick="showQuestionOnBoard(0)" id="showFirstBtn" class="glass-btn">
+                                <i class="fas fa-play"></i> ПОКАЗАТЬ ВОПРОС 1
+                            </button>
+                            <button onclick="showAnswerOnBoard()" id="showAnswerBtn" class="glass-btn" disabled>
+                                <i class="fas fa-check-circle"></i> ПОКАЗАТЬ ОТВЕТ
+                            </button>
+                            <button onclick="nextQuestion()" id="nextBtn" class="glass-btn" disabled>
+                                <i class="fas fa-forward"></i> СЛЕДУЮЩИЙ
                             </button>
                             <button onclick="resetGame()" class="glass-btn">
                                 <i class="fas fa-redo"></i> СБРОСИТЬ
@@ -306,17 +400,33 @@
         </div>
     </div>
 
+    <div id="presentationMode">
+        <div class="presentation-header">
+            <span>🎯 ВОПРОС <span id="presQNum">1</span>/5</span>
+            <span>Ответили: <span id="presAnswered">0</span> | Правильно: <span id="presCorrect">0</span></span>
+        </div>
+        <div class="presentation-content">
+            <div class="presentation-question">
+                <h2 id="presQuestionText"></h2>
+                <div class="presentation-options" id="presOptions"></div>
+            </div>
+        </div>
+        <div style="padding:20px; text-align:center; border-top:1px solid #0f0;">
+            <button class="glass-btn" onclick="closePresentation()">ЗАКРЫТЬ</button>
+        </div>
+    </div>
+
     <script>
         const QUESTIONS = [
-            { id: 1, text: "Что такое фишинг?", options: ["Вид рыбалки", "Кража данных", "Антивирус", "Шифрование"], correct: 1 },
-            { id: 2, text: "Какой пароль самый ненадежный?", options: ["G7$k2!mN9", "Tr0ub4dor&3", "qwerty123", "P@ssw0rd!$"], correct: 2 },
-            { id: 3, text: "Что такое 2FA?", options: ["2 аккаунта", "2 фактора", "2 файла", "2 вируса"], correct: 1 },
-            { id: 4, text: "Что такое VPN?", options: ["Вирус", "Частная сеть", "Пароль", "Антивирус"], correct: 1 },
-            { id: 5, text: "Что такое бэкап?", options: ["Копия", "Удаление", "Вирус", "Игра"], correct: 0 }
+            { id: 1, text: "Что такое фишинг?", options: ["Вид рыбалки", "Кража данных", "Антивирус", "Шифрование"], correct: 1, difficulty: "easy" },
+            { id: 2, text: "Какой пароль самый ненадежный?", options: ["G7$k2!mN9", "Tr0ub4dor&3", "qwerty123", "P@ssw0rd!$"], correct: 2, difficulty: "easy" },
+            { id: 3, text: "Что такое 2FA?", options: ["2 аккаунта", "2 фактора", "2 файла", "2 вируса"], correct: 1, difficulty: "easy" },
+            { id: 4, text: "Что такое VPN?", options: ["Вирус", "Частная сеть", "Пароль", "Антивирус"], correct: 1, difficulty: "easy" },
+            { id: 5, text: "Что такое бэкап?", options: ["Копия", "Удаление", "Вирус", "Игра"], correct: 0, difficulty: "easy" }
         ];
 
         let gameCode = null;
-        let currentQuestion = 0;
+        let currentQuestionIndex = 0;
         let pollInterval = null;
 
         async function createGame() {
@@ -338,6 +448,8 @@
                 document.getElementById('startSection').style.display = 'none';
                 document.getElementById('gameControls').classList.remove('hidden');
                 document.getElementById('gameCode').innerText = code;
+                document.getElementById('currentQ').innerText = '0/5';
+                
                 renderQuestions();
                 startPolling();
                 
@@ -346,36 +458,69 @@
             }
         }
 
-        async function activateGame() {
-            try {
-                const { error } = await SB
-                    .from('games')
-                    .update({ status: 'active', current_question: 1 })
-                    .eq('code', gameCode);
+        function renderQuestions() {
+            const list = document.getElementById('questionsList');
+            list.innerHTML = QUESTIONS.map((q, i) => {
+                let difficultyColor = q.difficulty === 'easy' ? '#0f0' : q.difficulty === 'medium' ? 'yellow' : 'red';
+                let difficultyText = q.difficulty.toUpperCase();
+                let status = i === currentQuestionIndex ? '🔴' : i < currentQuestionIndex ? '✅' : '⏳';
                 
-                if (error) throw error;
-                
-                document.getElementById('activateBtn').disabled = true;
-                alert('✅ Игра началась!');
-                
-            } catch (e) {
-                alert('Ошибка: ' + e.message);
+                return `
+                    <div class="question-item ${i === currentQuestionIndex ? 'active' : ''}" 
+                         onclick="showQuestionOnBoard(${i})">
+                        <div class="question-number">${i+1}</div>
+                        <div class="question-difficulty" style="color: ${difficultyColor}">${difficultyText}</div>
+                        <div class="question-status">${status}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showQuestionOnBoard(index) {
+            currentQuestionIndex = index;
+            renderQuestions();
+            
+            const q = QUESTIONS[index];
+            
+            document.getElementById('presQNum').innerText = index + 1;
+            document.getElementById('presQuestionText').innerText = q.text;
+            
+            let optionsHtml = '';
+            q.options.forEach((opt, i) => {
+                optionsHtml += `<div class="presentation-option">${opt}</div>`;
+            });
+            document.getElementById('presOptions').innerHTML = optionsHtml;
+            
+            document.getElementById('presentationMode').classList.add('active');
+            document.getElementById('showAnswerBtn').disabled = false;
+            document.getElementById('nextBtn').disabled = true;
+        }
+
+        function showAnswerOnBoard() {
+            const q = QUESTIONS[currentQuestionIndex];
+            const options = document.querySelectorAll('.presentation-option');
+            
+            options.forEach((opt, i) => {
+                if (i === q.correct) {
+                    opt.classList.add('correct');
+                }
+            });
+            
+            document.getElementById('showAnswerBtn').disabled = true;
+            document.getElementById('nextBtn').disabled = false;
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex + 1 < QUESTIONS.length) {
+                showQuestionOnBoard(currentQuestionIndex + 1);
+            } else {
+                alert('🎉 Все вопросы пройдены!');
+                closePresentation();
             }
         }
 
-        function renderQuestions() {
-            const list = document.getElementById('questionsList');
-            list.innerHTML = QUESTIONS.map((q, i) => `
-                <div class="question-item ${i === currentQuestion ? 'active' : ''}" onclick="selectQuestion(${i})">
-                    <div class="question-number">${i+1}</div>
-                    <div>${q.text.substring(0,20)}...</div>
-                </div>
-            `).join('');
-        }
-
-        function selectQuestion(index) {
-            currentQuestion = index;
-            renderQuestions();
+        function closePresentation() {
+            document.getElementById('presentationMode').classList.remove('active');
         }
 
         async function updatePlayers() {
@@ -412,10 +557,13 @@
         function resetGame() {
             if (pollInterval) clearInterval(pollInterval);
             gameCode = null;
+            currentQuestionIndex = 0;
             document.getElementById('startSection').style.display = 'block';
             document.getElementById('gameControls').classList.add('hidden');
             document.getElementById('gameCode').innerText = '----';
             document.getElementById('playersList').innerHTML = '<div class="empty-state">👤 Ожидание игроков...</div>';
+            renderQuestions();
+            closePresentation();
         }
     </script>
 </body>
