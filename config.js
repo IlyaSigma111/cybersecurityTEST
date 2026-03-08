@@ -2,13 +2,10 @@
 // КОНФИГУРАЦИЯ SUPABASE
 // ========================================
 
-// Создаем клиент через глобальный объект
-const { createClient } = window.supabase;
+const SB_URL = 'https://gluqnmznmjvlyguzkdrn.supabase.co';
+const SB_KEY = 'sb_publishable_OUdy33oOIQlOce88IXAP9w_G74CkWr_';
 
-const SUPABASE_URL = 'https://gluqnmznmjvlyguzkdrn.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_OUdy33oOIQlOce88IXAP9w_G74CkWr_';
+// УНИКАЛЬНОЕ ИМЯ КЛИЕНТА
+const SB = window.supabase.createClient(SB_URL, SB_KEY);
 
-// СОЗДАЁМ КЛИЕНТ
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-console.log('✅ Supabase инициализирован');
+console.log('✅ Supabase клиент готов');
