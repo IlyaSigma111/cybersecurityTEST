@@ -323,7 +323,7 @@
             try {
                 const code = Math.floor(10000000 + Math.random() * 90000000).toString();
                 
-                const { error } = await supabase
+                const { error } = await SB
                     .from('games')
                     .insert({ 
                         code: code, 
@@ -348,7 +348,7 @@
 
         async function activateGame() {
             try {
-                const { error } = await supabase
+                const { error } = await SB
                     .from('games')
                     .update({ status: 'active', current_question: 1 })
                     .eq('code', gameCode);
@@ -366,17 +366,22 @@
         function renderQuestions() {
             const list = document.getElementById('questionsList');
             list.innerHTML = QUESTIONS.map((q, i) => `
-                <div class="question-item ${i === currentQuestion ? 'active' : ''}">
+                <div class="question-item ${i === currentQuestion ? 'active' : ''}" onclick="selectQuestion(${i})">
                     <div class="question-number">${i+1}</div>
                     <div>${q.text.substring(0,20)}...</div>
                 </div>
             `).join('');
         }
 
+        function selectQuestion(index) {
+            currentQuestion = index;
+            renderQuestions();
+        }
+
         async function updatePlayers() {
             if (!gameCode) return;
             
-            const { data, error } = await supabase
+            const { data, error } = await SB
                 .from('players')
                 .select('*')
                 .eq('game_code', gameCode);
