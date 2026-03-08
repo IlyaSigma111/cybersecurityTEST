@@ -92,7 +92,6 @@
             { id: 5, text: "Что такое бэкап?", options: ["Копия", "Удаление", "Вирус", "Игра"], correct: 0 }
         ];
 
-        let gameId = null;
         let gameCode = null;
         let interval = null;
         let currentQuestion = 0;
@@ -101,18 +100,16 @@
             try {
                 const code = Math.floor(10000000 + Math.random() * 90000000).toString();
                 
-                const { data, error } = await APP_SUPABASE
+                const { error } = await APP_SUPABASE
                     .from('games')
                     .insert({ 
                         code: code, 
                         created_at: Date.now(), 
                         status: 'waiting'
-                    })
-                    .select();
+                    });
                 
                 if (error) throw error;
                 
-                gameId = data[0].id;
                 gameCode = code;
                 
                 document.getElementById('createBtn').style.display = 'none';
@@ -133,7 +130,7 @@
                 const { error } = await APP_SUPABASE
                     .from('games')
                     .update({ status: 'active', current_question: 1 })
-                    .eq('id', gameId);
+                    .eq('code', gameCode);
                 
                 if (error) throw error;
                 
