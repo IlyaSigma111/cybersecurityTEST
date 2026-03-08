@@ -285,7 +285,7 @@
             }
             
             try {
-                const { error } = await supabase
+                const { error } = await SB
                     .from('players')
                     .insert({
                         game_code: code,
@@ -312,7 +312,7 @@
         });
 
         async function checkGame() {
-            const { data, error } = await supabase
+            const { data, error } = await SB
                 .from('games')
                 .select('status, current_question')
                 .eq('code', gameCode)
