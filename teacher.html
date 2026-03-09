@@ -220,7 +220,6 @@
             padding: 15px 5px;
             text-align: center;
             cursor: pointer;
-            position: relative;
         }
         
         .question-item:hover {
@@ -476,11 +475,20 @@
             }).join('');
         }
 
-        function showQuestionOnBoard(index) {
+        async function showQuestionOnBoard(index) {
             currentQuestionIndex = index;
             renderQuestions();
             
             const q = QUESTIONS[index];
+            
+            // Обновляем в базе данных текущий вопрос
+            await SB
+                .from('games')
+                .update({ 
+                    status: 'active', 
+                    current_question: q.id 
+                })
+                .eq('code', gameCode);
             
             document.getElementById('presQNum').innerText = index + 1;
             document.getElementById('presQuestionText').innerText = q.text;
