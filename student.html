@@ -4,10 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ученик - Кибер Кахут</title>
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         ПОДКЛЮЧЕНИЕ БИБЛИОТЕК
+         - font-awesome: иконки
+         - google fonts: шрифты
+         - supabase: работа с базой данных
+         - config.js: наши настройки (с уникальным QUIZ_ID)
+         ═══════════════════════════════════════════════════════════════════════ -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         СТИЛИ - оформление страницы ученика
+         Здесь можно менять цвета, размеры, анимации
+         ═══════════════════════════════════════════════════════════════════════ -->
     <style>
         * {
             margin: 0;
@@ -66,6 +78,12 @@
             font-size: 2rem;
         }
         
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.5rem;
+        }
+        
         input {
             width: 100%;
             padding: 18px;
@@ -75,6 +93,11 @@
             color: #0f0;
             font-size: 1.2rem;
             margin: 10px 0;
+        }
+        
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 30px #0f0;
         }
         
         .btn {
@@ -220,10 +243,144 @@
         }
         
         .hidden { display: none; }
+        
+        /* ═══════════════════════════════════════════════════════════════════
+           СТИЛИ ДЛЯ ЛИДЕРБОРДА (ТАБЛИЦЫ РЕЗУЛЬТАТОВ)
+           - Пьедестал для топ-3
+           - Список остальных игроков
+           - Анимации
+           ═══════════════════════════════════════════════════════════════════ */
+        .leaderboard {
+            margin: 20px 0;
+        }
+        
+        .podium {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 15px;
+            margin: 30px 0;
+            padding: 20px 0;
+        }
+        
+        .podium-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100px;
+        }
+        
+        .podium-1 { order: 2; }
+        .podium-2 { order: 1; }
+        .podium-3 { order: 3; }
+        
+        .podium-place {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .podium-1 .podium-place {
+            background: #ffd700;
+            color: #000;
+            box-shadow: 0 0 30px #ffd700;
+        }
+        
+        .podium-2 .podium-place {
+            background: #c0c0c0;
+            color: #000;
+            box-shadow: 0 0 30px #c0c0c0;
+        }
+        
+        .podium-3 .podium-place {
+            background: #cd7f32;
+            color: #000;
+            box-shadow: 0 0 30px #cd7f32;
+        }
+        
+        .podium-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        
+        .podium-score {
+            font-size: 1.3rem;
+        }
+        
+        .podium-1 .podium-score {
+            color: #ffd700;
+        }
+        
+        .podium-2 .podium-score {
+            color: #c0c0c0;
+        }
+        
+        .podium-3 .podium-score {
+            color: #cd7f32;
+        }
+        
+        .players-table {
+            margin-top: 30px;
+        }
+        
+        .player-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+        }
+        
+        .player-rank {
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        
+        .player-name {
+            font-size: 1.1rem;
+            flex: 1;
+        }
+        
+        .player-score {
+            font-size: 1.2rem;
+            color: #0f0;
+            font-weight: bold;
+        }
+        
+        .top-3-divider {
+            margin: 20px 0;
+            text-align: center;
+            color: #0f0;
+            opacity: 0.5;
+        }
+        
+        .celebration {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 3rem;
+            animation: bounce 1s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- ═══════════════════════════════════════════════════════════════════
+             ЭКРАН 1: ВХОД
+             Ученик вводит имя и код игры
+             ═══════════════════════════════════════════════════════════════════ -->
         <div id="joinScreen" class="screen active">
             <div class="logo">🛡️</div>
             <h1>КИБЕР КАХУТ</h1>
@@ -233,6 +390,10 @@
             <button id="joinButton" class="btn">🔌 ПОДКЛЮЧИТЬСЯ</button>
         </div>
 
+        <!-- ═══════════════════════════════════════════════════════════════════
+             ЭКРАН 2: ОЖИДАНИЕ
+             Ученик ждёт начала игры
+             ═══════════════════════════════════════════════════════════════════ -->
         <div id="waitingScreen" class="screen">
             <div class="logo">⏳</div>
             <h2>ОЖИДАНИЕ...</h2>
@@ -254,6 +415,10 @@
             <button onclick="leaveGame()" class="btn">🚪 ВЫЙТИ</button>
         </div>
 
+        <!-- ═══════════════════════════════════════════════════════════════════
+             ЭКРАН 3: ВОПРОС
+             Ученик отвечает на вопросы
+             ═══════════════════════════════════════════════════════════════════ -->
         <div id="questionScreen" class="screen">
             <div class="question-header">
                 <span>КИБЕРБЕЗОПАСНОСТЬ</span>
@@ -263,9 +428,33 @@
             <div class="options" id="optionsContainer"></div>
             <div class="status waiting" id="answerStatus">⏳ Выбери ответ</div>
         </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════════
+             ЭКРАН 4: ЛИДЕРБОРД (РЕЗУЛЬТАТЫ)
+             Показывается после завершения игры
+             Содержит пьедестал для топ-3 и список остальных
+             ═══════════════════════════════════════════════════════════════════ -->
+        <div id="leaderboardScreen" class="screen">
+            <div class="celebration">🎉</div>
+            <h2>ИТОГИ ИГРЫ</h2>
+            <div class="leaderboard" id="leaderboard"></div>
+            <button onclick="playAgain()" class="btn">🔄 ИГРАТЬ СНОВА</button>
+        </div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         СКРИПТ - вся логика работы ученика
+         Здесь происходит:
+         - Подключение к игре (с фильтром по quiz_id)
+         - Ожидание начала
+         - Получение вопросов от учителя
+         - Отправка ответов
+         - Получение результатов
+         ═══════════════════════════════════════════════════════════════════════ -->
     <script>
+        // ═══════════════════════════════════════════════════════════════════════
+        // МАССИВ ВОПРОСОВ - ДОЛЖЕН СОВПАДАТЬ С teacher.html
+        // ═══════════════════════════════════════════════════════════════════════
         const QUESTIONS = [
             { id: 1, text: "Что такое фишинг?", options: ["Вид рыбалки", "Кража данных", "Антивирус", "Шифрование"], correct: 1, points: 1 },
             { id: 2, text: "Какой пароль самый ненадежный?", options: ["G7$k2!mN9", "Tr0ub4dor&3", "qwerty123", "P@ssw0rd!$"], correct: 2, points: 1 },
@@ -274,27 +463,40 @@
             { id: 5, text: "Что такое бэкап?", options: ["Копия", "Удаление", "Вирус", "Игра"], correct: 0, points: 1 }
         ];
 
-        let gameCode = null;
-        let playerName = null;
-        let currentQuestion = null;
-        let hasAnswered = false;
-        let pollInterval = null;
-        let playerScore = 0;
-        let currentQuestionId = null;
-        let isQuestionScreenActive = false;
+        // ═══════════════════════════════════════════════════════════════════════
+        // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+        // ═══════════════════════════════════════════════════════════════════════
+        let gameCode = null;              // Код текущей игры
+        let playerName = null;            // Имя игрока
+        let currentQuestion = null;       // Текущий вопрос
+        let hasAnswered = false;          // Ответил ли уже на текущий вопрос
+        let pollInterval = null;          // Интервал проверки статуса игры
+        let playerScore = 0;              // Очки игрока
+        let currentQuestionId = null;     // ID текущего вопроса
+        let isQuestionScreenActive = false; // Активен ли экран вопроса
+        let gameCompleted = false;         // Завершена ли игра
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // ПОЛУЧЕНИЕ ЭЛЕМЕНТОВ DOM
+        // ═══════════════════════════════════════════════════════════════════════
         const joinButton = document.getElementById('joinButton');
         const errorContainer = document.getElementById('errorContainer');
         const playerNameInput = document.getElementById('playerName');
         const gameCodeInput = document.getElementById('gameCode');
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // ФУНКЦИЯ: showError() - отображение ошибки
+        // ═══════════════════════════════════════════════════════════════════════
         function showError(msg) {
             errorContainer.innerHTML = `<div class="error">${msg}</div>`;
             setTimeout(() => errorContainer.innerHTML = '', 3000);
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // ФУНКЦИЯ: switchScreen() - переключение между экранами
+        // ═══════════════════════════════════════════════════════════════════════
         function switchScreen(screen) {
-            ['join', 'waiting', 'question'].forEach(s => {
+            ['join', 'waiting', 'question', 'leaderboard'].forEach(s => {
                 document.getElementById(s + 'Screen').classList.remove('active');
             });
             document.getElementById(screen + 'Screen').classList.add('active');
@@ -304,8 +506,102 @@
             } else {
                 isQuestionScreenActive = false;
             }
+            
+            if (screen === 'leaderboard') {
+                loadLeaderboard();
+            }
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // ФУНКЦИЯ: loadLeaderboard() - загрузка таблицы результатов
+        // Получает всех игроков, сортирует по очкам и отображает
+        // Топ-3 на пьедестале, остальные в списке
+        // ═══════════════════════════════════════════════════════════════════════
+        async function loadLeaderboard() {
+            if (!gameCode) return;
+            
+            try {
+                // Получаем всех игроков, отсортированных по баллам
+                const { data: players, error } = await SB
+                    .from('players')
+                    .select('name, score')
+                    .eq('game_code', gameCode)
+                    .order('score', { ascending: false });
+                
+                if (error) throw error;
+                
+                const leaderboardDiv = document.getElementById('leaderboard');
+                
+                if (!players || players.length === 0) {
+                    leaderboardDiv.innerHTML = '<p>Нет участников</p>';
+                    return;
+                }
+                
+                // Разделяем на топ-3 и остальных
+                const top3 = players.slice(0, 3);
+                const others = players.slice(3);
+                
+                let html = '';
+                
+                // Пьедестал для топ-3
+                if (top3.length > 0) {
+                    html += '<div class="podium">';
+                    
+                    // Расставляем в правильном порядке (2-1-3)
+                    const podiumOrder = [1, 0, 2]; // индексы для 2-го, 1-го, 3-го места
+                    
+                    podiumOrder.forEach((idx, position) => {
+                        if (idx < top3.length) {
+                            const player = top3[idx];
+                            const place = idx + 1;
+                            const placeClass = place === 1 ? 'podium-1' : place === 2 ? 'podium-2' : 'podium-3';
+                            
+                            html += `
+                                <div class="podium-item ${placeClass}">
+                                    <div class="podium-place">${place}</div>
+                                    <div class="podium-name">${player.name}</div>
+                                    <div class="podium-score">${player.score}</div>
+                                </div>
+                            `;
+                        }
+                    });
+                    
+                    html += '</div>';
+                }
+                
+                // Остальные игроки
+                if (others.length > 0) {
+                    html += '<div class="top-3-divider">──────────</div>';
+                    html += '<div class="players-table">';
+                    
+                    others.forEach((player, index) => {
+                        const rank = index + 4; // начиная с 4-го места
+                        html += `
+                            <div class="player-row">
+                                <span class="player-rank">#${rank}</span>
+                                <span class="player-name">${player.name}</span>
+                                <span class="player-score">${player.score}</span>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div>';
+                }
+                
+                leaderboardDiv.innerHTML = html;
+                
+            } catch (e) {
+                console.error('Ошибка загрузки лидерборда:', e);
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // ОБРАБОТЧИК КНОПКИ ПОДКЛЮЧЕНИЯ
+        // 1. Проверяет введённые данные
+        // 2. Добавляет игрока в таблицу players с полем game_code
+        // 3. Переключает на экран ожидания
+        // 4. Запускает проверку статуса игры
+        // ═══════════════════════════════════════════════════════════════════════
         joinButton.addEventListener('click', async () => {
             const name = playerNameInput.value.trim();
             const code = gameCodeInput.value.trim();
@@ -344,6 +640,13 @@
             }
         });
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // ФУНКЦИЯ: checkGameStatus() - проверка статуса игры
+        // Запрашивает из базы информацию о текущей игре
+        // В зависимости от статуса:
+        // - 'active' с новым вопросом → показываем вопрос
+        // - 'finished' → показываем лидерборд
+        // ═══════════════════════════════════════════════════════════════════════
         async function checkGameStatus() {
             if (!gameCode) return;
             
@@ -360,8 +663,14 @@
                 }
                 
                 if (data) {
+                    // Если игра завершена и мы не показывали лидерборд
+                    if (data.status === 'finished' && !gameCompleted) {
+                        gameCompleted = true;
+                        clearInterval(pollInterval);
+                        switchScreen('leaderboard');
+                    }
                     // Если игра активна и есть текущий вопрос
-                    if (data.status === 'active' && data.current_question) {
+                    else if (data.status === 'active' && data.current_question) {
                         // Если это новый вопрос (отличается от текущего)
                         if (data.current_question !== currentQuestionId) {
                             console.log('Новый вопрос:', data.current_question);
@@ -372,12 +681,11 @@
                         }
                     } 
                     // Если игра больше не активна, но мы на экране вопроса
-                    else if (data.status !== 'active' && isQuestionScreenActive) {
-                        console.log('Игра завершена, возвращаемся в ожидание');
-                        switchScreen('waiting');
-                        currentQuestion = null;
-                        currentQuestionId = null;
-                        hasAnswered = false;
+                    else if (data.status !== 'active' && isQuestionScreenActive && !gameCompleted) {
+                        console.log('Игра завершена, показываем лидерборд');
+                        gameCompleted = true;
+                        clearInterval(pollInterval);
+                        switchScreen('leaderboard');
                     }
                 }
             } catch (e) {
@@ -385,6 +693,10 @@
             }
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // ФУНКЦИЯ: loadQuestion() - загрузка вопроса
+        // Отображает текст вопроса и варианты ответов
+        // ═══════════════════════════════════════════════════════════════════════
         function loadQuestion(questionId) {
             const question = QUESTIONS.find(q => q.id === questionId);
             if (!question) return;
@@ -392,7 +704,7 @@
             currentQuestion = question;
             
             document.getElementById('questionText').innerText = question.text;
-            document.getElementById('questionCounter').innerText = `${questionId}/5`;
+            document.getElementById('questionCounter').innerText = `${questionId}/${QUESTIONS.length}`;
             
             const optionsHtml = question.options.map((opt, i) => `
                 <div class="option" onclick="selectAnswer(${i})">
@@ -405,6 +717,13 @@
             document.getElementById('answerStatus').className = 'status waiting';
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // ФУНКЦИЯ: selectAnswer() - выбор ответа
+        // 1. Проверяет правильность
+        // 2. Сохраняет ответ в таблицу answers
+        // 3. Обновляет счёт игрока в таблице players
+        // 4. Показывает результат
+        // ═══════════════════════════════════════════════════════════════════════
         window.selectAnswer = async (index) => {
             if (hasAnswered || !currentQuestion || !gameCode || !playerName) return;
             
@@ -464,8 +783,29 @@
             }
         };
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // ФУНКЦИЯ: leaveGame() - выход из игры
+        // Возвращает на экран входа
+        // ═══════════════════════════════════════════════════════════════════════
         window.leaveGame = () => {
             if (pollInterval) clearInterval(pollInterval);
+            resetGameState();
+            switchScreen('join');
+        };
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // ФУНКЦИЯ: playAgain() - играть снова
+        // Возвращает на экран входа
+        // ═══════════════════════════════════════════════════════════════════════
+        window.playAgain = () => {
+            resetGameState();
+            switchScreen('join');
+        };
+
+        // ═══════════════════════════════════════════════════════════════════════
+        // ФУНКЦИЯ: resetGameState() - сброс состояния игры
+        // ═══════════════════════════════════════════════════════════════════════
+        function resetGameState() {
             gameCode = null;
             playerName = null;
             currentQuestion = null;
@@ -473,11 +813,11 @@
             currentQuestionId = null;
             playerScore = 0;
             isQuestionScreenActive = false;
-            switchScreen('join');
+            gameCompleted = false;
             playerNameInput.value = '';
             gameCodeInput.value = '';
             document.getElementById('displayScore').innerText = '0';
-        };
+        }
     </script>
 </body>
 </html>
