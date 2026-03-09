@@ -303,4 +303,160 @@
             const name = playerNameInput.value.trim();
             const code = gameCodeInput.value.trim();
             
-            if (!name ||
+            if (!name || !code) {
+                showError("Введите имя и код");
+                return;
+            }
+            
+            try {
+                const { error } = await SB
+                    .from('players')
+                    .insert({
+                        game_code: code,
+                        name: name,
+                        score: 0,
+                        answered: false,
+                        joined_at: Date.now()
+                    });
+                
+                if (error) throw error;
+                
+                gameCode = code;
+                playerName = name;
+                
+                document.getElementById('displayName').innerText = name;
+                document.getElementById('displayCode').innerText = code;
+                switchScreen('waiting');
+                
+                // Проверяем статус игры каждые 2 секунды
+                if (pollInterval) clearInterval(pollInterval);
+                pollInterval = setInterval(checkGameStatus, 2000);
+                
+            } catch (e) {
+                showError(e.message);
+            }
+        });
+
+        async function checkGameStatus() {
+            if (!gameCode) return;
+            
+            try {
+                const { data, error } = await SB
+                    .from('games')
+                    .select('status, current_question')
+                    .eq('code', gameCode)
+                    .single();
+                
+                if (error) {
+                    console.log('Игра не найдена или ошибка:', error.message);
+                    return;
+                }
+                
+                if (data && data.status === 'active' && data.current_question && data.current_question !== currentQuestionId) {
+                    console.log('Найден новый вопрос:', data.current_question);
+                    currentQuestionId = data.current_question;
+                    hasAnswered = false;
+                    clearInterval(pollInterval);
+                    loadQuestion(data.current_question);
+                }
+            } catch (e) {
+                console.error('Ошибка при проверке игры:', e);
+            }
+        }
+
+        function loadQuestion(questionId) {
+            const question = QUESTIONS.find(q => q.id === questionId);
+            if (!question) return;
+            
+            currentQuestion = question;
+            switchScreen('question');
+            
+            document.getElementById('questionText').innerText = question.text;
+            document.getElementById('questionCounter').innerText = `${questionId}/5`;
+            
+            const optionsHtml = question.options.map((opt, i) => `
+                <div class="option" onclick="selectAnswer(${i})">
+                    <div class="option-letter">${String.fromCharCode(65 + i)}</div>
+                    <div>${opt}</div>
+                </div>
+            `).join('');
+            document.getElementById('optionsContainer').innerHTML = optionsHtml;
+            document.getElementById('answerStatus').innerHTML = '⏳ Выбери ответ';
+            document.getElementById('answerStatus').className = 'status waiting';
+        }
+
+        window.selectAnswer = async (index) => {
+            if (hasAnswered || !currentQuestion || !gameCode || !playerName) return;
+            
+            hasAnswered = true;
+            
+            // Подсвечиваем выбранный вариант
+            document.querySelectorAll('.option').forEach((opt, i) => {
+                if (i === index) opt.classList.add('selected');
+            });
+            
+            const isCorrect = (index === currentQuestion.correct);
+            
+            const statusDiv = document.getElementById('answerStatus');
+            statusDiv.textContent = isCorrect ? "✅ ПРАВИЛЬНО!" : "❌ НЕПРАВИЛЬНО";
+            statusDiv.className = isCorrect ? "status correct" : "status wrong";
+            
+            try {
+                // Сохраняем ответ
+                const { error: answerError } = await SB
+                    .from('answers')
+                    .insert({
+                        game_code: gameCode,
+                        question_id: currentQuestion.id,
+                        player_name: playerName,
+                        answer_index: index,
+                        is_correct: isCorrect,
+                        answered_at: Date.now()
+                    });
+                
+                if (answerError) throw answerError;
+                
+                if (isCorrect) {
+                    playerScore += currentQuestion.points;
+                    document.getElementById('displayScore').innerText = playerScore;
+                    
+                    // Обновляем счёт игрока
+                    await SB
+                        .from('players')
+                        .update({ 
+                            score: playerScore, 
+                            answered: true 
+                        })
+                        .eq('game_code', gameCode)
+                        .eq('name', playerName);
+                } else {
+                    // Отмечаем что игрок ответил
+                    await SB
+                        .from('players')
+                        .update({ answered: true })
+                        .eq('game_code', gameCode)
+                        .eq('name', playerName);
+                }
+                
+            } catch (e) {
+                console.error('Ошибка сохранения ответа:', e);
+                hasAnswered = false;
+            }
+        };
+
+        window.leaveGame = () => {
+            if (pollInterval) clearInterval(pollInterval);
+            gameCode = null;
+            playerName = null;
+            currentQuestion = null;
+            hasAnswered = false;
+            currentQuestionId = null;
+            playerScore = 0;
+            switchScreen('join');
+            playerNameInput.value = '';
+            gameCodeInput.value = '';
+            document.getElementById('displayScore').innerText = '0';
+        };
+    </script>
+</body>
+</html>
