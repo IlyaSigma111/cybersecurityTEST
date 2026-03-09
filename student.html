@@ -172,10 +172,22 @@
             border-radius: 16px;
         }
         
-        .error {
+        .status.correct { 
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #0f0;
+            color: #0f0;
+        }
+        
+        .status.wrong { 
             background: rgba(255, 0, 0, 0.2);
             border: 1px solid #ff4444;
             color: #ff4444;
+        }
+        
+        .error {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid #ff0000;
+            color: #ff0000;
             padding: 12px;
             border-radius: 12px;
             margin: 10px 0;
@@ -304,23 +316,36 @@
                 document.getElementById('displayCode').innerText = code;
                 switchScreen('waiting');
                 
-                pollInterval = setInterval(checkGame, 2000);
+                // Проверяем статус игры каждые 2 секунды
+                pollInterval = setInterval(checkGameStatus, 2000);
                 
             } catch (e) {
                 showError(e.message);
             }
         });
 
-        async function checkGame() {
-            const { data, error } = await SB
-                .from('games')
-                .select('status, current_question')
-                .eq('code', gameCode)
-                .single();
+        async function checkGameStatus() {
+            if (!gameCode) return;
             
-            if (data?.status === 'active' && data.current_question) {
-                clearInterval(pollInterval);
-                loadQuestion(data.current_question);
+            try {
+                const { data, error } = await SB
+                    .from('games')
+                    .select('status, current_question')
+                    .eq('code', gameCode)
+                    .maybeSingle();
+                
+                if (error) {
+                    console.error('Ошибка при проверке игры:', error);
+                    return;
+                }
+                
+                if (data && data.status === 'active' && data.current_question) {
+                    // Нашли активный вопрос - показываем его
+                    clearInterval(pollInterval);
+                    loadQuestion(data.current_question);
+                }
+            } catch (e) {
+                console.error('Ошибка:', e);
             }
         }
 
@@ -360,12 +385,13 @@
         };
 
         window.leaveGame = () => {
-            clearInterval(pollInterval);
+            if (pollInterval) clearInterval(pollInterval);
             gameCode = null;
             playerName = null;
             switchScreen('join');
             playerNameInput.value = '';
             gameCodeInput.value = '';
+            document.getElementById('displayScore').innerText = '0';
         };
     </script>
 </body>
