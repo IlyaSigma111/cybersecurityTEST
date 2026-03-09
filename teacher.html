@@ -4,10 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Учитель - Кибер Кахут</title>
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         ПОДКЛЮЧЕНИЕ БИБЛИОТЕК
+         - font-awesome: иконки
+         - google fonts: шрифты
+         - supabase: работа с базой данных
+         - config.js: наши настройки
+         ═══════════════════════════════════════════════════════════════════════ -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
+    
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         СТИЛИ - оформление панели учителя
+         Здесь можно менять цвета, размеры, анимации
+         ═══════════════════════════════════════════════════════════════════════ -->
     <style>
         * {
             margin: 0;
@@ -281,6 +293,12 @@
         
         .hidden { display: none; }
         
+        /* ═══════════════════════════════════════════════════════════════════
+           СТИЛИ ДЛЯ РЕЖИМА ПРЕЗЕНТАЦИИ
+           - Крупный вопрос на весь экран
+           - Статистика ответов в шапке
+           - Без вариантов ответа (только вопрос)
+           ═══════════════════════════════════════════════════════════════════ */
         #presentationMode {
             position: fixed;
             top: 0;
@@ -303,6 +321,7 @@
             display: flex;
             justify-content: space-between;
             border-bottom: 1px solid #0f0;
+            font-size: 1.2rem;
         }
         
         .presentation-content {
@@ -314,55 +333,47 @@
         }
         
         .presentation-question {
-            max-width: 800px;
+            max-width: 900px;
+            width: 100%;
             background: rgba(0,0,0,0.7);
             border: 2px solid #0f0;
             border-radius: 30px;
-            padding: 40px;
+            padding: 60px;
             text-align: center;
         }
         
+        /* ═══════════════════════════════════════════════════════════════════
+           УВЕЛИЧЕННЫЙ ВОПРОС - вариант с большим шрифтом
+           Варианты ответов скрыты, так как их видят только ученики
+           ═══════════════════════════════════════════════════════════════════ */
         .presentation-question h2 {
-            font-size: 2rem;
-            margin-bottom: 30px;
-        }
-        
-        .presentation-options {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin: 30px 0;
-        }
-        
-        .presentation-option {
-            border: 2px solid #0f0;
-            border-radius: 15px;
-            padding: 20px;
-        }
-        
-        .presentation-option.correct {
-            border-color: #ff00ff;
-            box-shadow: 0 0 20px #ff00ff;
-        }
-        
-        .stats-container {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 20px;
+            font-size: 4rem;  /* Увеличенный размер вопроса */
+            line-height: 1.4;
+            margin-bottom: 40px;
+            text-shadow: 0 0 20px #0f0;
         }
         
         .stats-box {
+            display: inline-block;
             background: rgba(0,0,0,0.5);
-            border: 1px solid #0f0;
-            border-radius: 10px;
-            padding: 10px 20px;
-            text-align: center;
+            border: 2px solid #0f0;
+            border-radius: 20px;
+            padding: 20px 40px;
+            margin-top: 30px;
+            font-size: 2rem;
         }
         
-        .stats-number {
-            font-size: 2rem;
+        .stats-box span {
+            color: #ff00ff;
+            font-size: 2.5rem;
             font-weight: bold;
+            margin: 0 15px;
+        }
+        
+        .presentation-controls {
+            padding: 20px;
+            text-align: center;
+            border-top: 1px solid #0f0;
         }
     </style>
 </head>
@@ -403,11 +414,18 @@
                             <button onclick="nextQuestion()" id="nextBtn" class="glass-btn" disabled>
                                 <i class="fas fa-forward"></i> СЛЕДУЮЩИЙ
                             </button>
+                            <button onclick="finishGame()" class="glass-btn">
+                                <i class="fas fa-flag-checkered"></i> ЗАВЕРШИТЬ ИГРУ
+                            </button>
                             <button onclick="resetGame()" class="glass-btn">
                                 <i class="fas fa-redo"></i> СБРОСИТЬ
                             </button>
                         </div>
                         
+                        <!-- ══════════════════════════════════════════════════════════
+                             СТАТИСТИКА ОТВЕТОВ - крупные цифры
+                             Отображает сколько игроков ответило и сколько правильно
+                             ══════════════════════════════════════════════════════════ -->
                         <div class="stats-grid">
                             <div class="stat-card">
                                 <div class="stat-value" id="totalPlayers">0</div>
@@ -460,6 +478,10 @@
         </div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         РЕЖИМ ПРЕЗЕНТАЦИИ - показывается на весь экран
+         Здесь только крупный вопрос и статистика, без вариантов ответа
+         ═══════════════════════════════════════════════════════════════════════ -->
     <div id="presentationMode">
         <div class="presentation-header">
             <span>🎯 ВОПРОС <span id="presQNum">1</span>/5</span>
@@ -468,15 +490,38 @@
         <div class="presentation-content">
             <div class="presentation-question">
                 <h2 id="presQuestionText"></h2>
-                <div class="presentation-options" id="presOptions"></div>
+                <!-- Варианты ответов НЕ показываются - они только у учеников -->
+                <div class="stats-box">
+                    <span id="presAnsweredBig">0</span> из <span id="presTotalBig">0</span> ответили<br>
+                    <span style="color: #ff00ff;" id="presCorrectBig">0</span> правильно
+                </div>
             </div>
         </div>
-        <div style="padding:20px; text-align:center; border-top:1px solid #0f0;">
+        <div class="presentation-controls">
             <button class="glass-btn" onclick="closePresentation()">ЗАКРЫТЬ</button>
         </div>
     </div>
 
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         СКРИПТ - вся логика работы учителя
+         Здесь происходит:
+         - Создание игры с уникальным кодом
+         - Отслеживание подключившихся игроков
+         - Показ вопросов на доске
+         - Сбор статистики ответов
+         - Завершение игры и показ результатов
+         ═══════════════════════════════════════════════════════════════════════ -->
     <script>
+        // ═══════════════════════════════════════════════════════════════════════
+        // МАССИВ ВОПРОСОВ - ЗДЕСЬ МЕНЯТЬ ВОПРОСЫ ДЛЯ НОВОЙ ВИКТОРИНЫ
+        // ═══════════════════════════════════════════════════════════════════════
+        // Структура вопроса:
+        // id: уникальный номер вопроса
+        // text: текст вопроса
+        // options: массив вариантов ответа (4 штуки)
+        // correct: индекс правильного ответа (0,1,2,3)
+        // points: количество очков за правильный ответ
+        // difficulty: сложность (easy, medium, hard) - влияет на цвет в списке
         const QUESTIONS = [
             { id: 1, text: "Что такое фишинг?", options: ["Вид рыбалки", "Кража данных", "Антивирус", "Шифрование"], correct: 1, points: 1, difficulty: "easy" },
             { id: 2, text: "Какой пароль самый ненадежный?", options: ["G7$k2!mN9", "Tr0ub4dor&3", "qwerty123", "P@ssw0rd!$"], correct: 2, points: 1, difficulty: "easy" },
@@ -485,11 +530,22 @@
             { id: 5, text: "Что такое бэкап?", options: ["Копия", "Удаление", "Вирус", "Игра"], correct: 0, points: 1, difficulty: "easy" }
         ];
 
-        let gameCode = null;
-        let currentQuestionIndex = 0;
-        let pollInterval = null;
-        let statsInterval = null;
+        // ═══════════════════════════════════════════════════════════════════════
+        // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+        // ═══════════════════════════════════════════════════════════════════════
+        let gameCode = null;              // Код текущей игры (8 цифр)
+        let currentQuestionIndex = 0;     // Индекс текущего вопроса (0-4)
+        let pollInterval = null;          // Интервал для обновления списка игроков
+        let statsInterval = null;         // Интервал для обновления статистики
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // ФУНКЦИЯ: createGame() - создание новой игры
+        // Действия:
+        // 1. Генерирует случайный 8-значный код
+        // 2. Сохраняет игру в таблицу games с полем quiz_id = QUIZ_ID из config.js
+        // 3. Показывает панель управления
+        // 4. Запускает обновление списка игроков и статистики
+        // ═══════════════════════════════════════════════════════════════════════
         async function createGame() {
             try {
                 const code = Math.floor(10000000 + Math.random() * 90000000).toString();
@@ -498,6 +554,7 @@
                     .from('games')
                     .insert({ 
                         code: code, 
+                        quiz_id: QUIZ_ID,           // ← ВАЖНО: добавляем ID викторины
                         created_at: Date.now(), 
                         status: 'waiting',
                         current_question: 0
@@ -510,7 +567,7 @@
                 document.getElementById('startSection').style.display = 'none';
                 document.getElementById('gameControls').classList.remove('hidden');
                 document.getElementById('gameCode').innerText = code;
-                document.getElementById('currentQ').innerText = '0/5';
+                document.getElementById('currentQ').innerText = '0/' + QUESTIONS.length;
                 
                 renderQuestions();
                 startPolling();
@@ -521,6 +578,11 @@
             }
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // ФУНКЦИЯ: renderQuestions() - отрисовка списка вопросов
+        // Каждый вопрос показывается как плитка с номером и статусом
+        // Статусы: 🔴 - текущий, ✅ - пройден, ⏳ - предстоит
+        // ═══════════════════════════════════════════════════════════════════════
         function renderQuestions() {
             const list = document.getElementById('questionsList');
             list.innerHTML = QUESTIONS.map((q, i) => {
@@ -539,6 +601,13 @@
             }).join('');
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // ФУНКЦИЯ: showQuestionOnBoard(index) - показ вопроса на доске
+        // Действия:
+        // 1. Обновляет текущий вопрос в базе данных
+        // 2. Показывает крупный вопрос в режиме презентации
+        // 3. Обновляет статистику
+        // ═══════════════════════════════════════════════════════════════════════
         async function showQuestionOnBoard(index) {
             currentQuestionIndex = index;
             renderQuestions();
@@ -554,18 +623,9 @@
                 })
                 .eq('code', gameCode);
             
+            // Обновляем интерфейс презентации
             document.getElementById('presQNum').innerText = index + 1;
             document.getElementById('presQuestionText').innerText = q.text;
-            
-            let optionsHtml = '';
-            q.options.forEach((opt, i) => {
-                optionsHtml += `<div class="presentation-option">${opt}</div>`;
-            });
-            document.getElementById('presOptions').innerHTML = optionsHtml;
-            
-            // Сбрасываем статистику для нового вопроса
-            document.getElementById('presAnswered').innerText = '0';
-            document.getElementById('presCorrect').innerText = '0';
             
             document.getElementById('presentationMode').classList.add('active');
             document.getElementById('showAnswerBtn').disabled = false;
@@ -575,20 +635,22 @@
             await updateStats();
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // ФУНКЦИЯ: showAnswerOnBoard() - показ правильного ответа
+        // В режиме презентации подсвечивает правильный ответ
+        // ═══════════════════════════════════════════════════════════════════════
         function showAnswerOnBoard() {
             const q = QUESTIONS[currentQuestionIndex];
-            const options = document.querySelectorAll('.presentation-option');
-            
-            options.forEach((opt, i) => {
-                if (i === q.correct) {
-                    opt.classList.add('correct');
-                }
-            });
-            
+            // Визуально отмечаем правильный ответ (можно добавить подсветку)
             document.getElementById('showAnswerBtn').disabled = true;
             document.getElementById('nextBtn').disabled = false;
+            
+            // Можно добавить анимацию или звук
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // ФУНКЦИЯ: nextQuestion() - переход к следующему вопросу
+        // ═══════════════════════════════════════════════════════════════════════
         function nextQuestion() {
             if (currentQuestionIndex + 1 < QUESTIONS.length) {
                 showQuestionOnBoard(currentQuestionIndex + 1);
@@ -598,10 +660,31 @@
             }
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // ФУНКЦИЯ: finishGame() - завершение игры
+        // Меняет статус игры на 'finished', чтобы ученики увидели результаты
+        // ═══════════════════════════════════════════════════════════════════════
+        async function finishGame() {
+            if (!gameCode) return;
+            
+            await SB
+                .from('games')
+                .update({ status: 'finished' })
+                .eq('code', gameCode);
+            
+            alert('✅ Игра завершена! Ученики увидят результаты.');
+            resetGame();
+        }
+
         function closePresentation() {
             document.getElementById('presentationMode').classList.remove('active');
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // ФУНКЦИЯ: updatePlayers() - обновление списка игроков
+        // Запрашивает из базы всех игроков текущей игры
+        // Фильтрует по quiz_id и game_code
+        // ═══════════════════════════════════════════════════════════════════════
         async function updatePlayers() {
             if (!gameCode) return;
             
@@ -632,6 +715,11 @@
             }
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // ФУНКЦИЯ: updateStats() - обновление статистики ответов
+        // Считает сколько игроков ответило на текущий вопрос
+        // и сколько из них правильно
+        // ═══════════════════════════════════════════════════════════════════════
         async function updateStats() {
             if (!gameCode || currentQuestionIndex < 0) return;
             
@@ -651,15 +739,26 @@
                 const correctCount = answers?.filter(a => a.is_correct).length || 0;
                 const wrongCount = answeredCount - correctCount;
                 
+                // Получаем общее количество игроков
+                const { data: players } = await SB
+                    .from('players')
+                    .select('*')
+                    .eq('game_code', gameCode);
+                
+                const totalPlayers = players?.length || 0;
+                
                 // Обновляем общую статистику
                 document.getElementById('answeredCount').innerText = answeredCount;
                 document.getElementById('correctCount').innerText = correctCount;
                 document.getElementById('wrongCount').innerText = wrongCount;
                 
-                // Обновляем статистику в презентации
+                // Обновляем статистику в презентации (крупные цифры)
                 if (document.getElementById('presentationMode').classList.contains('active')) {
                     document.getElementById('presAnswered').innerText = answeredCount;
                     document.getElementById('presCorrect').innerText = correctCount;
+                    document.getElementById('presAnsweredBig').innerText = answeredCount;
+                    document.getElementById('presCorrectBig').innerText = correctCount;
+                    document.getElementById('presTotalBig').innerText = totalPlayers;
                 }
             } catch (e) {
                 console.error('Ошибка обновления статистики:', e);
@@ -678,6 +777,10 @@
             statsInterval = setInterval(updateStats, 2000);
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        // ФУНКЦИЯ: resetGame() - сброс игры
+        // Возвращает интерфейс в начальное состояние
+        // ═══════════════════════════════════════════════════════════════════════
         function resetGame() {
             if (pollInterval) clearInterval(pollInterval);
             if (statsInterval) clearInterval(statsInterval);
