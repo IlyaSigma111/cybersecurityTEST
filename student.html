@@ -281,6 +281,7 @@
         let pollInterval = null;
         let playerScore = 0;
         let currentQuestionId = null;
+        let isQuestionScreenActive = false;
 
         const joinButton = document.getElementById('joinButton');
         const errorContainer = document.getElementById('errorContainer');
@@ -297,6 +298,12 @@
                 document.getElementById(s + 'Screen').classList.remove('active');
             });
             document.getElementById(screen + 'Screen').classList.add('active');
+            
+            if (screen === 'question') {
+                isQuestionScreenActive = true;
+            } else {
+                isQuestionScreenActive = false;
+            }
         }
 
         joinButton.addEventListener('click', async () => {
@@ -352,12 +359,26 @@
                     return;
                 }
                 
-                if (data && data.status === 'active' && data.current_question && data.current_question !== currentQuestionId) {
-                    console.log('Найден новый вопрос:', data.current_question);
-                    currentQuestionId = data.current_question;
-                    hasAnswered = false;
-                    clearInterval(pollInterval);
-                    loadQuestion(data.current_question);
+                if (data) {
+                    // Если игра активна и есть текущий вопрос
+                    if (data.status === 'active' && data.current_question) {
+                        // Если это новый вопрос (отличается от текущего)
+                        if (data.current_question !== currentQuestionId) {
+                            console.log('Новый вопрос:', data.current_question);
+                            currentQuestionId = data.current_question;
+                            hasAnswered = false;
+                            loadQuestion(data.current_question);
+                            switchScreen('question');
+                        }
+                    } 
+                    // Если игра больше не активна, но мы на экране вопроса
+                    else if (data.status !== 'active' && isQuestionScreenActive) {
+                        console.log('Игра завершена, возвращаемся в ожидание');
+                        switchScreen('waiting');
+                        currentQuestion = null;
+                        currentQuestionId = null;
+                        hasAnswered = false;
+                    }
                 }
             } catch (e) {
                 console.error('Ошибка при проверке игры:', e);
@@ -369,7 +390,6 @@
             if (!question) return;
             
             currentQuestion = question;
-            switchScreen('question');
             
             document.getElementById('questionText').innerText = question.text;
             document.getElementById('questionCounter').innerText = `${questionId}/5`;
@@ -452,6 +472,7 @@
             hasAnswered = false;
             currentQuestionId = null;
             playerScore = 0;
+            isQuestionScreenActive = false;
             switchScreen('join');
             playerNameInput.value = '';
             gameCodeInput.value = '';
