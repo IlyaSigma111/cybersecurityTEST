@@ -211,6 +211,7 @@
             border-radius: 16px;
             padding: 15px;
             text-align: center;
+            transition: 0.3s;
         }
         
         .player-card.answered {
@@ -498,7 +499,8 @@
                     .insert({ 
                         code: code, 
                         created_at: Date.now(), 
-                        status: 'waiting'
+                        status: 'waiting',
+                        current_question: 0
                     });
                 
                 if (error) throw error;
@@ -568,6 +570,9 @@
             document.getElementById('presentationMode').classList.add('active');
             document.getElementById('showAnswerBtn').disabled = false;
             document.getElementById('nextBtn').disabled = true;
+            
+            // Обновляем статистику сразу
+            await updateStats();
         }
 
         function showAnswerOnBoard() {
@@ -600,72 +605,76 @@
         async function updatePlayers() {
             if (!gameCode) return;
             
-            const { data, error } = await SB
-                .from('players')
-                .select('*')
-                .eq('game_code', gameCode);
-            
-            if (error) return;
-            
-            document.getElementById('totalPlayers').innerText = data.length;
-            
-            const list = document.getElementById('playersList');
-            if (data.length === 0) {
-                list.innerHTML = '<div class="empty-state">👤 Ожидание игроков...</div>';
-            } else {
-                list.innerHTML = data.map(p => `
-                    <div class="player-card ${p.answered ? 'answered' : ''}">
-                        <div class="player-avatar">${p.name[0]}</div>
-                        <div class="player-name">${p.name}</div>
-                        <div>🎯 ${p.score || 0}</div>
-                    </div>
-                `).join('');
+            try {
+                const { data, error } = await SB
+                    .from('players')
+                    .select('*')
+                    .eq('game_code', gameCode);
+                
+                if (error) throw error;
+                
+                document.getElementById('totalPlayers').innerText = data.length;
+                
+                const list = document.getElementById('playersList');
+                if (data.length === 0) {
+                    list.innerHTML = '<div class="empty-state">👤 Ожидание игроков...</div>';
+                } else {
+                    list.innerHTML = data.map(p => `
+                        <div class="player-card ${p.answered ? 'answered' : ''}">
+                            <div class="player-avatar">${p.name[0]}</div>
+                            <div class="player-name">${p.name}</div>
+                            <div>🎯 ${p.score || 0}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {
+                console.error('Ошибка обновления игроков:', e);
             }
         }
 
         async function updateStats() {
             if (!gameCode || currentQuestionIndex < 0) return;
             
-            const currentQuestionId = QUESTIONS[currentQuestionIndex].id;
-            
-            // Получаем всех игроков для этой игры
-            const { data: players } = await SB
-                .from('players')
-                .select('*')
-                .eq('game_code', gameCode);
-            
-            const totalPlayers = players?.length || 0;
-            
-            // Получаем ответы на текущий вопрос
-            const { data: answers } = await SB
-                .from('answers')
-                .select('*')
-                .eq('game_code', gameCode)
-                .eq('question_id', currentQuestionId);
-            
-            const answeredCount = answers?.length || 0;
-            const correctCount = answers?.filter(a => a.is_correct).length || 0;
-            const wrongCount = answeredCount - correctCount;
-            
-            // Обновляем общую статистику
-            document.getElementById('answeredCount').innerText = answeredCount;
-            document.getElementById('correctCount').innerText = correctCount;
-            document.getElementById('wrongCount').innerText = wrongCount;
-            
-            // Обновляем статистику в презентации
-            if (document.getElementById('presentationMode').classList.contains('active')) {
-                document.getElementById('presAnswered').innerText = answeredCount;
-                document.getElementById('presCorrect').innerText = correctCount;
+            try {
+                const currentQuestionId = QUESTIONS[currentQuestionIndex].id;
+                
+                // Получаем ответы на текущий вопрос
+                const { data: answers, error } = await SB
+                    .from('answers')
+                    .select('*')
+                    .eq('game_code', gameCode)
+                    .eq('question_id', currentQuestionId);
+                
+                if (error) throw error;
+                
+                const answeredCount = answers?.length || 0;
+                const correctCount = answers?.filter(a => a.is_correct).length || 0;
+                const wrongCount = answeredCount - correctCount;
+                
+                // Обновляем общую статистику
+                document.getElementById('answeredCount').innerText = answeredCount;
+                document.getElementById('correctCount').innerText = correctCount;
+                document.getElementById('wrongCount').innerText = wrongCount;
+                
+                // Обновляем статистику в презентации
+                if (document.getElementById('presentationMode').classList.contains('active')) {
+                    document.getElementById('presAnswered').innerText = answeredCount;
+                    document.getElementById('presCorrect').innerText = correctCount;
+                }
+            } catch (e) {
+                console.error('Ошибка обновления статистики:', e);
             }
         }
 
         function startPolling() {
             updatePlayers();
+            if (pollInterval) clearInterval(pollInterval);
             pollInterval = setInterval(updatePlayers, 2000);
         }
 
         function startStatsPolling() {
             updateStats();
+            if (statsInterval) clearInterval(statsInterval);
             statsInterval = setInterval(updateStats, 2000);
         }
 
