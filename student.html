@@ -153,6 +153,10 @@
             box-shadow: 0 0 20px #0f0;
         }
         
+        .option.selected {
+            background: rgba(0, 255, 0, 0.2);
+        }
+        
         .option-letter {
             width: 40px;
             height: 40px;
@@ -182,6 +186,12 @@
             background: rgba(255, 0, 0, 0.2);
             border: 1px solid #ff4444;
             color: #ff4444;
+        }
+        
+        .status.waiting {
+            background: rgba(255, 255, 0, 0.1);
+            border: 1px solid yellow;
+            color: yellow;
         }
         
         .error {
@@ -269,6 +279,7 @@
         let hasAnswered = false;
         let pollInterval = null;
         let playerScore = 0;
+        let currentQuestionId = null;
 
         const joinButton = document.getElementById('joinButton');
         const errorContainer = document.getElementById('errorContainer');
@@ -339,8 +350,10 @@
                     return;
                 }
                 
-                if (data && data.status === 'active' && data.current_question) {
-                    // Нашли активный вопрос - показываем его
+                if (data && data.status === 'active' && data.current_question && data.current_question !== currentQuestionId) {
+                    // Нашли новый активный вопрос - показываем его
+                    currentQuestionId = data.current_question;
+                    hasAnswered = false;
                     clearInterval(pollInterval);
                     loadQuestion(data.current_question);
                 }
@@ -366,21 +379,66 @@
                 </div>
             `).join('');
             document.getElementById('optionsContainer').innerHTML = optionsHtml;
+            document.getElementById('answerStatus').innerHTML = '⏳ Выбери ответ';
+            document.getElementById('answerStatus').className = 'status waiting';
         }
 
         window.selectAnswer = async (index) => {
-            if (hasAnswered || !currentQuestion) return;
+            if (hasAnswered || !currentQuestion || !gameCode || !playerName) return;
             
             hasAnswered = true;
+            
+            // Подсвечиваем выбранный вариант
+            document.querySelectorAll('.option').forEach((opt, i) => {
+                if (i === index) opt.classList.add('selected');
+            });
+            
             const isCorrect = (index === currentQuestion.correct);
             
             const statusDiv = document.getElementById('answerStatus');
             statusDiv.textContent = isCorrect ? "✅ ПРАВИЛЬНО!" : "❌ НЕПРАВИЛЬНО";
             statusDiv.className = isCorrect ? "status correct" : "status wrong";
             
-            if (isCorrect) {
-                playerScore += currentQuestion.points;
-                document.getElementById('displayScore').innerText = playerScore;
+            try {
+                // Сохраняем ответ
+                const { error: answerError } = await SB
+                    .from('answers')
+                    .insert({
+                        game_code: gameCode,
+                        question_id: currentQuestion.id,
+                        player_name: playerName,
+                        answer_index: index,
+                        is_correct: isCorrect,
+                        answered_at: Date.now()
+                    });
+                
+                if (answerError) throw answerError;
+                
+                if (isCorrect) {
+                    playerScore += currentQuestion.points;
+                    document.getElementById('displayScore').innerText = playerScore;
+                    
+                    // Обновляем счёт игрока
+                    await SB
+                        .from('players')
+                        .update({ 
+                            score: playerScore, 
+                            answered: true 
+                        })
+                        .eq('game_code', gameCode)
+                        .eq('name', playerName);
+                } else {
+                    // Отмечаем что игрок ответил
+                    await SB
+                        .from('players')
+                        .update({ answered: true })
+                        .eq('game_code', gameCode)
+                        .eq('name', playerName);
+                }
+                
+            } catch (e) {
+                console.error('Ошибка сохранения ответа:', e);
+                hasAnswered = false;
             }
         };
 
@@ -388,6 +446,10 @@
             if (pollInterval) clearInterval(pollInterval);
             gameCode = null;
             playerName = null;
+            currentQuestion = null;
+            hasAnswered = false;
+            currentQuestionId = null;
+            playerScore = 0;
             switchScreen('join');
             playerNameInput.value = '';
             gameCodeInput.value = '';
